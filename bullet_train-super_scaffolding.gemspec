@@ -26,4 +26,5 @@ Gem::Specification.new do |spec|
 
   # For Super Scaffolding: "select *a* team member" vs. "select *an* option".
   spec.add_dependency "indefinite_article"
+  spec.add_dependency "colorize"
 end
