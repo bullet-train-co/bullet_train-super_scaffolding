@@ -9,6 +9,7 @@ require "bullet_train/super_scaffolding/scaffolders/oauth_provider_scaffolder"
 
 require "indefinite_article"
 require "colorize"
+require "fileutils"
 
 module BulletTrain
   module SuperScaffolding
