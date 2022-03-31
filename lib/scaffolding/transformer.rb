@@ -1348,7 +1348,7 @@ class Scaffolding::Transformer
             if `which open`.present?
               TerminalCommands.open_file_or_link("https://themify.me/themify-icons`")
               if font_awesome?
-                TerminalCommands("https://fontawesome.com/icons?d=gallery&s=light")
+                TerminalCommands.open_file_or_link("https://fontawesome.com/icons?d=gallery&s=light")
               end
             else
               puts "Sorry! We can't open these URLs automatically on your platform, but you can visit them manually:"
