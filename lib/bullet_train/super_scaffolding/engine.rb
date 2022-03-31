@@ -1,3 +1,7 @@
+require "active_support"
+require "rails/engine"
+require "scaffolding"
+
 module BulletTrain
   module SuperScaffolding
     class Engine < ::Rails::Engine
