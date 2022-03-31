@@ -13,7 +13,7 @@ require "fileutils"
 
 module BulletTrain
   module SuperScaffolding
-    mattr_accessor :template_paths, default: []
+    mattr_accessor :template_paths, default: [File.expand_path("../..", __dir__)]
     mattr_accessor :scaffolders, default: {
       "crud" => "BulletTrain::SuperScaffolding::Scaffolders::CrudScaffolder",
       "crud-field" => "BulletTrain::SuperScaffolding::Scaffolders::CrudFieldScaffolder",
