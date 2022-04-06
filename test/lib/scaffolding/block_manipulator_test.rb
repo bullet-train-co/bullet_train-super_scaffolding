@@ -5,6 +5,7 @@ require "scaffolding/block_manipulator"
 
 describe Scaffolding::BlockManipulator do
   file_path = "./test/lib/scaffolding/examples/block_manipulator_data.html.erb"
+  initial_file_contents = File.open(file_path).readlines.join
   initial_data_state =
     <<~DATA
 
@@ -12,6 +13,10 @@ describe Scaffolding::BlockManipulator do
       <% end %>
 
     DATA
+
+  after :all do
+    File.write(file_path, initial_file_contents)
+  end
 
   it "initializes" do
     Scaffolding::BlockManipulator.new(file_path)
