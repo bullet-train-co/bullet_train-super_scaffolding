@@ -6,13 +6,6 @@ require "scaffolding/block_manipulator"
 describe Scaffolding::BlockManipulator do
   file_path = "./test/lib/scaffolding/examples/block_manipulator_data.html.erb"
   initial_file_contents = File.open(file_path).readlines.join
-  initial_data_state =
-    <<~DATA
-
-      <% test_block do %>
-      <% end %>
-
-    DATA
 
   after :all do
     File.write(file_path, initial_file_contents)
@@ -23,7 +16,7 @@ describe Scaffolding::BlockManipulator do
   end
 
   def initialize_demo_file file_path, data = nil
-    File.write(file_path, (data || initial_data_state))
+    File.write(file_path, data)
   end
 
   it "Inserts within a block and after the given location" do
@@ -107,6 +100,14 @@ describe Scaffolding::BlockManipulator do
   end
 
   it "appends a line after the block" do
+    initial_data_state =
+      <<~DATA
+
+        <% test_block do %>
+        <% end %>
+
+      DATA
+
     initialize_demo_file(file_path, initial_data_state)
     block_manipulator = Scaffolding::BlockManipulator.new(file_path)
     block_manipulator.insert("This is a new line", after_block: "<% test_block")
@@ -179,6 +180,14 @@ describe Scaffolding::BlockManipulator do
   end
 
   it "Wraps a block with a new block" do
+    initial_data_state =
+      <<~DATA
+
+        <% test_block do %>
+        <% end %>
+
+      DATA
+
     initialize_demo_file(file_path, initial_data_state)
     block_manipulator = Scaffolding::BlockManipulator.new(file_path)
     block_manipulator.wrap_block(starting: "<% test_block", with: ["<% outer_block do %>", "<% end %>"])
