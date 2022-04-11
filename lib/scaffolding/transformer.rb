@@ -1137,6 +1137,10 @@ class Scaffolding::Transformer
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "has_one_attached :#{name}", HAS_ONE_HOOK, prepend: true)
         when "trix_editor"
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "has_rich_text :#{name}", HAS_ONE_HOOK, prepend: true)
+        when "buttons"
+          if boolean_buttons
+            scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "validates :#{name}, inclusion: [true, false]", VALIDATIONS_HOOK, prepend: true)
+          end
         end
 
       end
