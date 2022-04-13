@@ -639,7 +639,7 @@ class Scaffolding::Transformer
         elsif is_id
           "belongs_to"
         else
-          "option"
+          "option#{"s" if is_multiple}"
         end
       when "cloudinary_image"
         attribute_options[:height] = 200
@@ -769,7 +769,7 @@ class Scaffolding::Transformer
         end
 
         if is_multiple
-          field_options[:multiple] = "true"
+          field_attributes[:multiple] = "true"
         end
 
         valid_values = if is_id
@@ -936,7 +936,7 @@ class Scaffolding::Transformer
         [
           "./app/controllers/account/scaffolding/completely_concrete/tangible_things_controller.rb"
         ].each do |file|
-          if is_ids
+          if is_ids || is_multiple
             scaffold_add_line_to_file(file, "#{name}: [],", RUBY_NEW_ARRAYS_HOOK, prepend: true)
           else
             scaffold_add_line_to_file(file, ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true)
