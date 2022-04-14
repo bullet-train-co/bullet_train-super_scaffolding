@@ -631,10 +631,8 @@ class Scaffolding::Transformer
       attribute_partial ||= attribute_options[:attribute] || case type
       when "trix_editor", "ckeditor"
         "html"
-      when "buttons", "super_select", "options"
-        if boolean_buttons
-          "boolean"
-        elsif is_ids
+      when "buttons", "super_select", "options", "boolean"
+        if is_ids
           "has_many"
         elsif is_id
           "belongs_to"
