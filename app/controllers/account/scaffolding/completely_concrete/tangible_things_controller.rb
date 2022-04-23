@@ -1,5 +1,6 @@
 class Account::Scaffolding::CompletelyConcrete::TangibleThingsController < Account::ApplicationController
   account_load_and_authorize_resource :tangible_thing, through: :absolutely_abstract_creative_concept, through_association: :completely_concrete_tangible_things
+  before_action -> { set_pagy(:tangible_things, self) } if pagy_enabled?
 
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things.json
