@@ -71,4 +71,4 @@
   <% end %>
 <% end %>
 
-<%== pagy_nav(@pagy) if pagy_enabled? %>
+<%== pagy_nav(@pagy) if pagy_enabled? && controller.action_name == "index" %>
