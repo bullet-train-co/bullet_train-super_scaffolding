@@ -1141,15 +1141,15 @@ class Scaffolding::Transformer
         case type
         when "file_field"
           remove_file_methods =
-          <<~RUBY
-            def #{name}_removal?
-              #{name}_removal.present?
-            end
+            <<~RUBY
+              def #{name}_removal?
+                #{name}_removal.present?
+              end
 
-            def remove_#{name}
-              #{name}.purge
-            end
-          RUBY
+              def remove_#{name}
+                #{name}.purge
+              end
+            RUBY
 
           # Generating a model with an `attachment` data type (i.e. - `rails g ModelName file:attachment`)
           # adds `has_one_attached` to our model, just not directly above the HAS_ONE_HOOK.
@@ -1158,7 +1158,7 @@ class Scaffolding::Transformer
           model_contents = File.readlines(model_file_path)
           model_without_attached_hook = model_contents.reject.each { |line| line.include?("has_one_attached :#{name}") }
           File.open(model_file_path, "w") do |f|
-            model_without_attached_hook.each {|line| f.write(line)}
+            model_without_attached_hook.each { |line| f.write(line) }
           end
 
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "has_one_attached :#{name}", HAS_ONE_HOOK, prepend: true)
