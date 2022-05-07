@@ -798,12 +798,6 @@ class Scaffolding::Transformer
           end
         end
 
-        # `options` itself is usually a hash inside of field_attributes, but we change
-        # it to a String here so it's consistent with the Tangible Things form partial.
-        if type == "color_picker"
-          field_attributes[:options] = "t('#{child.downcase.pluralize}.fields.#{name_without_id}.options')"
-        end
-
         field_content = "<%= render 'shared/fields/#{type}'#{", " if field_attributes.any?}#{field_attributes.map { |key, value| "#{key}: #{value}" }.join(", ")} %>"
 
         # TODO Add more of these from other packages?
