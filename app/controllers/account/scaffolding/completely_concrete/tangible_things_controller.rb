@@ -1,12 +1,12 @@
 class Account::Scaffolding::CompletelyConcrete::TangibleThingsController < Account::ApplicationController
   account_load_and_authorize_resource :tangible_thing, through: :absolutely_abstract_creative_concept, through_association: :completely_concrete_tangible_things
-  before_action -> { set_pagy(:tangible_things, self) }, only: [:index] if pagy_enabled?
 
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things.json
   def index
     # if you only want these objects shown on their parent's show page, uncomment this:
     # redirect_to [:account, @absolutely_abstract_creative_concept]
+    @pagy, @tangible_things = pagy(@tangible_things)
   end
 
   # GET /account/scaffolding/completely_concrete/tangible_things/:id
