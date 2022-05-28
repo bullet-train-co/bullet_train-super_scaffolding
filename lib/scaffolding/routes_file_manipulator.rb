@@ -142,7 +142,7 @@ class Scaffolding::RoutesFileManipulator
     current_namespace = nil
     while namespaces.any?
       current_namespace = namespaces.shift
-      namespace_lines = if !within.nil? && namespace_blocks_directly_under_parent(within)
+      namespace_lines = unless within.nil?
         scope_namespace_to_parent(current_namespace, within)
       else
         find_namespaces(created_namespaces + [current_namespace], within)
@@ -189,16 +189,6 @@ class Scaffolding::RoutesFileManipulator
       namespace_line_number if lines[namespace_line_number].match?(/ +namespace :#{namespace}/)
     end.compact
     namespace_block_start.present? ? {namespace => namespace_block_start} : {}
-  end
-
-  def namespace_exists_directly_under_parent?(namespace, within)
-    namespace_blocks_directly_under_parent(within).each do |namespace_block|
-      namespace_line_index = namespace_block.begin - 1
-      if lines[namespace_line_index].match?(/ +namespace :#{namespace}/)
-        return true
-      end
-    end
-    false
   end
 
   def find(needle, within = nil)
@@ -265,7 +255,7 @@ class Scaffolding::RoutesFileManipulator
     result
   end
 
-  # Finds namespace blocks no matter how many levels nested in resource blocks, etc..
+  # Finds namespace blocks no matter how many levels deep they are nested in resource blocks, etc.
   # However, will not find namespace blocks inside namespace blocks.
   def top_level_namespace_block_lines(within)
     local_namespace_blocks = []
