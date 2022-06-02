@@ -142,10 +142,10 @@ class Scaffolding::RoutesFileManipulator
     current_namespace = nil
     while namespaces.any?
       current_namespace = namespaces.shift
-      namespace_lines = unless within.nil?
-        scope_namespace_to_parent(current_namespace, within)
-      else
+      namespace_lines = if within.nil?
         find_namespaces(created_namespaces + [current_namespace], within)
+      else
+        scope_namespace_to_parent(current_namespace, within)
       end
 
       unless namespace_lines[current_namespace]
