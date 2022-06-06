@@ -1,5 +1,7 @@
+require "scaffolding/block_manipulator"
+
 class Scaffolding::RoutesFileManipulator
-  attr_accessor :child, :parent, :lines, :transformer_options
+  attr_accessor :child, :parent, :lines, :transformer_options, :block_manipulator
 
   def initialize(filename, child, parent, transformer_options = {})
     self.child = child
@@ -7,6 +9,7 @@ class Scaffolding::RoutesFileManipulator
     @filename = filename
     self.lines = File.readlines(@filename)
     self.transformer_options = transformer_options
+    self.block_manipulator = Scaffolding::BlockManipulator.new(filename)
   end
 
   def child_parts
@@ -79,17 +82,11 @@ class Scaffolding::RoutesFileManipulator
     results
   end
 
-  def indentation_of(line_number)
-    lines[line_number].match(/^( +)/)[1]
-  rescue
-    nil
-  end
-
   def find_block_parent(starting_line_number)
-    return nil unless indentation_of(starting_line_number)
+    return nil unless block_manipulator.indentation_of(starting_line_number, lines)
     cursor = starting_line_number
     while cursor >= 0
-      unless lines[cursor].match?(/^#{indentation_of(starting_line_number)}/) || !lines[cursor].present?
+      unless lines[cursor].match?(/^#{block_manipulator.indentation_of(starting_line_number, lines)}/) || !lines[cursor].present?
         return cursor
       end
       cursor -= 1
@@ -98,10 +95,10 @@ class Scaffolding::RoutesFileManipulator
   end
 
   def find_block_end(starting_line_number)
-    return nil unless indentation_of(starting_line_number)
+    return nil unless block_manipulator.indentation_of(starting_line_number, lines)
     lines.each_with_index do |line, line_number|
       next unless line_number > starting_line_number
-      if /^#{indentation_of(starting_line_number)}end\s+/.match?(line)
+      if /^#{block_manipulator.indentation_of(starting_line_number, lines)}end\s+/.match?(line)
         return line_number
       end
     end
@@ -111,7 +108,7 @@ class Scaffolding::RoutesFileManipulator
   def insert_before(new_lines, line_number, options = {})
     options[:indent] ||= false
     before = lines[0..(line_number - 1)]
-    new_lines = new_lines.map { |line| (indentation_of(line_number) + (options[:indent] ? "  " : "") + line).gsub(/\s+$/, "") + "\n" }
+    new_lines = new_lines.map { |line| (block_manipulator.indentation_of(line_number, lines) + (options[:indent] ? "  " : "") + line).gsub(/\s+$/, "") + "\n" }
     after = lines[line_number..]
     self.lines = before + (options[:prepend_newline] ? ["\n"] : []) + new_lines + after
   end
@@ -119,7 +116,7 @@ class Scaffolding::RoutesFileManipulator
   def insert_after(new_lines, line_number, options = {})
     options[:indent] ||= false
     before = lines[0..line_number]
-    new_lines = new_lines.map { |line| (indentation_of(line_number) + (options[:indent] ? "  " : "") + line).gsub(/\s+$/, "") + "\n" }
+    new_lines = new_lines.map { |line| (block_manipulator.indentation_of(line_number, lines) + (options[:indent] ? "  " : "") + line).gsub(/\s+$/, "") + "\n" }
     after = lines[(line_number + 1)..]
     self.lines = before + new_lines + (options[:append_newline] ? ["\n"] : []) + after
   end

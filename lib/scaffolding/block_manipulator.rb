@@ -137,4 +137,13 @@ class Scaffolding::BlockManipulator
     end
     current_line
   end
+
+  # TODO: We shouldn't need this second argument, but since
+  # we have `lines` here and in the RoutesFileManipulator,
+  # the lines diverge from one another when we edit them individually.
+  def indentation_of(line_number, lines)
+    lines[line_number].match(/^( +)/)[1]
+  rescue
+    nil
+  end
 end
