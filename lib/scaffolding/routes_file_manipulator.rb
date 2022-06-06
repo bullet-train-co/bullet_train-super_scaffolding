@@ -82,18 +82,6 @@ class Scaffolding::RoutesFileManipulator
     results
   end
 
-  def find_block_parent(starting_line_number)
-    return nil unless block_manipulator.indentation_of(starting_line_number, lines)
-    cursor = starting_line_number
-    while cursor >= 0
-      unless lines[cursor].match?(/^#{block_manipulator.indentation_of(starting_line_number, lines)}/) || !lines[cursor].present?
-        return cursor
-      end
-      cursor -= 1
-    end
-    nil
-  end
-
   def find_block_end(starting_line_number)
     return nil unless block_manipulator.indentation_of(starting_line_number, lines)
     lines.each_with_index do |line, line_number|
@@ -345,7 +333,7 @@ class Scaffolding::RoutesFileManipulator
 
       find_resource(parent_namespaces + [parent_resource], within: within)
       top_parent_namespace = find_namespaces(parent_namespaces, within)[parent_namespaces.first]
-      block_parent_within = find_block_parent(top_parent_namespace)
+      block_parent_within = block_manipulator.find_block_parent(top_parent_namespace, lines)
       parent_namespaces_and_resource = (parent_namespaces + [parent_resource]).join("_")
       parent_within = find_or_create_resource_block([parent_namespaces_and_resource], options: "path: '#{parent_namespaces_and_resource.tr("_", "/")}'", within: block_parent_within)
       find_or_create_resource(child_namespaces + [child_resource], within: parent_within)

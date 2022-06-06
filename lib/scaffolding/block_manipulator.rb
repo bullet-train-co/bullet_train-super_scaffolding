@@ -111,6 +111,18 @@ class Scaffolding::BlockManipulator
     File.write(@filepath, @lines.join)
   end
 
+  def find_block_parent(starting_line_number, lines)
+    return nil unless indentation_of(starting_line_number, lines)
+    cursor = starting_line_number
+    while cursor >= 0
+      unless lines[cursor].match?(/^#{indentation_of(starting_line_number, lines)}/) || !lines[cursor].present?
+        return cursor
+      end
+      cursor -= 1
+    end
+    nil
+  end
+
   def find_block_start(starting_string)
     matcher = Regexp.escape(starting_string)
     starting_line = 0
