@@ -147,7 +147,8 @@ jobs:
       - image: circleci/redis
     executor: ruby/default
     steps:
-      - browser-tools/install-browser-tools
+      - browser-tools/install-chrome
+      - browser-tools/install-chromedriver
       - checkout
       - run: "git clone --branch fixes/reconfigure-eager-loading https://github.com/gazayas/bullet_train.git tmp/starter"
 
