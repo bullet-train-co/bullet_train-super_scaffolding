@@ -273,7 +273,7 @@ class Scaffolding::RoutesFileManipulator
       within_block_end = block_manipulator.find_block_end(starting_from: within, lines: lines)
       within.upto(within_block_end) do |line_number|
         if lines[line_number].match?(/^#{" " * (parent_indentation_size + 2)}namespace/)
-          namespace_block_lines = line_number..block_manipulator.find_block_end(line_number, lines)
+          namespace_block_lines = line_number..block_manipulator.find_block_end(starting_from: line_number, lines: lines)
           blocks << namespace_block_lines
         end
       end
