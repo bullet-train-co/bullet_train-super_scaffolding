@@ -269,11 +269,11 @@ class Scaffolding::RoutesFileManipulator
   def namespace_blocks_directly_under_parent(within)
     blocks = []
     if lines[within].match?(/do$/)
-      parent_indentation_size = block_manipulator.block_indentation_size(within)
-      within_block_end = find_block_end(within)
+      parent_indentation_size = block_manipulator.indentation_of(within, lines).length
+      within_block_end = block_manipulator.find_block_end(starting_from: within, lines: lines)
       within.upto(within_block_end) do |line_number|
         if lines[line_number].match?(/^#{" " * (parent_indentation_size + 2)}namespace/)
-          namespace_block_lines = line_number..find_block_end(line_number)
+          namespace_block_lines = line_number..block_manipulator.find_block_end(line_number, lines)
           blocks << namespace_block_lines
         end
       end
@@ -355,7 +355,7 @@ class Scaffolding::RoutesFileManipulator
 
       # We want to see if there are any namespaces one level above the parent itself,
       # because namespaces with the same name as the resource can exist on the same level.
-      parent_block_start = find_block_parent(parent_within)
+      parent_block_start = block_manipulator.find_block_parent(parent_within, lines)
       namespace_line_within = find_or_create_namespaces(child_namespaces, parent_block_start)
       find_or_create_resource([child_resource], options: "except: collection_actions", within: namespace_line_within)
       unless find_namespaces(child_namespaces, within)[child_namespaces.last]
