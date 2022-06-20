@@ -9,11 +9,7 @@ class Scaffolding::RoutesFileManipulator
     @filename = filename
     self.lines = File.readlines(@filename)
     self.transformer_options = transformer_options
-<<<<<<< HEAD
-    self.block_manipulator = Scaffolding::BlockManipulator.new(filename)
-=======
     self.block_manipulator = Scaffolding::BlockManipulator.new(@filename)
->>>>>>> main
   end
 
   def child_parts
@@ -363,14 +359,7 @@ class Scaffolding::RoutesFileManipulator
       namespace_line_within = find_or_create_namespaces(child_namespaces, parent_block_start)
       find_or_create_resource([child_resource], options: "except: collection_actions", within: namespace_line_within)
       unless find_namespaces(child_namespaces, within)[child_namespaces.last]
-<<<<<<< HEAD
-        insert_after(["", "namespace :#{child_namespaces.last} do", "end"], block_manipulator.find_block_end(starting_from: scope_within, lines: lines))
-        unless find_namespaces(child_namespaces, within)[child_namespaces.last]
-          raise "tried to insert `namespace :#{child_namespaces.last}` but it seems we failed"
-        end
-=======
         raise "tried to insert `namespace :#{child_namespaces.last}` but it seems we failed"
->>>>>>> main
       end
 
     # e.g. Projects::Deliverable and Objective Under It, Abstract::Concept and Concrete::Thing
@@ -385,14 +374,7 @@ class Scaffolding::RoutesFileManipulator
       # resources :projects_deliverables, path: 'projects/deliverables' do
       #   resources :objectives
       # end
-<<<<<<< HEAD
-
-      find_resource(parent_namespaces + [parent_resource], within: within)
-      top_parent_namespace = find_namespaces(parent_namespaces, within)[parent_namespaces.first]
       block_parent_within = block_manipulator.find_block_parent(top_parent_namespace, lines)
-=======
-      block_parent_within = find_block_parent(top_parent_namespace)
->>>>>>> main
       parent_namespaces_and_resource = (parent_namespaces + [parent_resource]).join("_")
       parent_within = find_or_create_resource_block([parent_namespaces_and_resource], options: "path: '#{parent_namespaces_and_resource.tr("_", "/")}'", within: block_parent_within)
       find_or_create_resource(child_namespaces + [child_resource], within: parent_within)
