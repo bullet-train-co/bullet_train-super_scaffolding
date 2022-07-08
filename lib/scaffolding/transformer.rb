@@ -23,6 +23,7 @@ class Scaffolding::Transformer
   ENDPOINTS_HOOK = "# 🚅 super scaffolding will mount new endpoints above this line."
   ERB_NEW_FIELDS_HOOK = "<%#{RUBY_NEW_FIELDS_HOOK} %>"
   CONCERNS_HOOK = "# 🚅 add concerns above."
+  ATTR_ACCESSORS_HOOK = "# 🚅 add attribute accessors above."
   BELONGS_TO_HOOK = "# 🚅 add belongs_to associations above."
   HAS_MANY_HOOK = "# 🚅 add has_many associations above."
   OAUTH_PROVIDERS_HOOK = "# 🚅 add oauth providers above."
@@ -414,6 +415,8 @@ class Scaffolding::Transformer
     before_scaffolding_hooks = <<~RUBY
       #{CONCERNS_HOOK}
 
+      #{ATTR_ACCESSORS_HOOK}
+
     RUBY
 
     after_scaffolding_hooks = <<-RUBY
@@ -565,7 +568,7 @@ class Scaffolding::Transformer
   def add_attributes_to_various_views(attributes, scaffolding_options = {})
     sql_type_to_field_type_mapping = {
       # 'binary' => '',
-      "boolean" => "buttons",
+      "boolean" => "options",
       "date" => "date_field",
       "datetime" => "date_and_time_field",
       "decimal" => "text_field",
@@ -631,15 +634,13 @@ class Scaffolding::Transformer
       attribute_partial ||= attribute_options[:attribute] || case type
       when "trix_editor", "ckeditor"
         "html"
-      when "buttons", "super_select", "options"
-        if boolean_buttons
-          "boolean"
-        elsif is_ids
+      when "buttons", "super_select", "options", "boolean"
+        if is_ids
           "has_many"
         elsif is_id
           "belongs_to"
         else
-          "option"
+          "option#{"s" if is_multiple}"
         end
       when "cloudinary_image"
         attribute_options[:height] = 200
@@ -654,8 +655,14 @@ class Scaffolding::Transformer
         "email"
       when "color_picker"
         "code"
-      else
+      when "text_field"
         "text"
+      when "text_area"
+        "text"
+      when "file_field"
+        "text"
+      else
+        raise "Invalid attribute type: #{type}."
       end
 
       cell_attributes = if boolean_buttons
@@ -747,7 +754,7 @@ class Scaffolding::Transformer
       # FORM FIELD
       #
 
-      unless cli_options["skip-form"]
+      unless cli_options["skip-form"] || attribute_options[:readonly]
 
         # add `has_rich_text` for trix editor fields.
         if type == "trix_editor"
@@ -768,8 +775,14 @@ class Scaffolding::Transformer
           # add_additional_step :yellow, transform_string("We've added a reference to a `placeholder` to the form for the select or super_select field, but unfortunately earlier versions of the scaffolded locales Yaml don't include a reference to `fields: *fields` under `form`. Please add it, otherwise your form won't be able to locate the appropriate placeholder label.")
         end
 
+        # TODO: This feels incorrect.
+        # Should we adjust the partials to only use `{multiple: true}` or `html_options: {multiple_true}`?
         if is_multiple
-          field_options[:multiple] = "true"
+          if type == "super_select"
+            field_options[:multiple] = "true"
+          else
+            field_attributes[:multiple] = "true"
+          end
         end
 
         valid_values = if is_id
@@ -912,6 +925,18 @@ class Scaffolding::Transformer
 
             <% end %>
 
+            <% if type == "color_picker" %>
+            options:
+              - '#9C73D2'
+              - '#48CDFE'
+              - '#53F3ED'
+              - '#47E37F'
+              - '#F2593D'
+              - '#F68421'
+              - '#F9DE00'
+              - '#929292'
+            <% end %>
+
           <% if is_association %>
           <%= attribute_name %>: *<%= attribute_name %>
           <% end %>
@@ -930,16 +955,19 @@ class Scaffolding::Transformer
       # STRONG PARAMETERS
       #
 
-      unless cli_options["skip-form"]
+      unless cli_options["skip-form"] || attribute_options[:readonly]
 
         # add attributes to strong params.
         [
           "./app/controllers/account/scaffolding/completely_concrete/tangible_things_controller.rb"
         ].each do |file|
-          if is_ids
+          if is_ids || is_multiple
             scaffold_add_line_to_file(file, "#{name}: [],", RUBY_NEW_ARRAYS_HOOK, prepend: true)
           else
             scaffold_add_line_to_file(file, ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true)
+            if type == "file_field"
+              scaffold_add_line_to_file(file, ":#{name}_removal,", RUBY_NEW_FIELDS_HOOK, prepend: true)
+            end
           end
         end
 
@@ -1008,10 +1036,14 @@ class Scaffolding::Transformer
           scaffold_add_line_to_file("./app/views/account/scaffolding/completely_concrete/tangible_things/_tangible_thing.json.jbuilder", ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true, suppress_could_not_find: true)
           scaffold_add_line_to_file("./app/serializers/api/v1/scaffolding/completely_concrete/tangible_thing_serializer.rb", ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true)
 
-          assertion = if type == "date_field"
+          assertion = case type
+          when "date_field"
             "assert_equal Date.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
-          elsif type == "date_and_time_field"
+          when "date_and_time_field"
             "assert_equal DateTime.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
+          when "file_field"
+            # TODO: If we want to use Cloudinary to handle our files, we should make sure we're getting a URL.
+            "assert_equal tangible_thing_data['#{name}']['record']['id'], tangible_thing.#{name}.record.id"
           else
             "assert_equal tangible_thing_data['#{name}'], tangible_thing.#{name}"
           end
@@ -1021,8 +1053,10 @@ class Scaffolding::Transformer
         # scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller_test.rb", "assert_equal tangible_thing_attributes['#{name.gsub('_', '-')}'], tangible_thing.#{name}", RUBY_NEW_FIELDS_HOOK, prepend: true)
 
         if attribute_assignment
-          scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", "#{name}: #{attribute_assignment},", RUBY_ADDITIONAL_NEW_FIELDS_HOOK, prepend: true)
-          scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", "assert_equal @tangible_thing.#{name}, #{attribute_assignment}", RUBY_EVEN_MORE_NEW_FIELDS_HOOK, prepend: true)
+          unless attribute_options[:readonly]
+            scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", "#{name}: #{attribute_assignment},", RUBY_ADDITIONAL_NEW_FIELDS_HOOK, prepend: true)
+            scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", "assert_equal @tangible_thing.#{name}, #{attribute_assignment}", RUBY_EVEN_MORE_NEW_FIELDS_HOOK, prepend: true)
+          end
         end
       end
 
@@ -1134,9 +1168,38 @@ class Scaffolding::Transformer
 
         case type
         when "file_field"
+          remove_file_methods =
+            <<~RUBY
+              def #{name}_removal?
+                #{name}_removal.present?
+              end
+
+              def remove_#{name}
+                #{name}.purge
+              end
+            RUBY
+
+          # Generating a model with an `attachment` data type (i.e. - `rails g ModelName file:attachment`)
+          # adds `has_one_attached` to our model, just not directly above the HAS_ONE_HOOK.
+          # We move the string here so it's right above the HAS_ONE_HOOK.
+          model_file_path = transform_string("./app/models/scaffolding/completely_concrete/tangible_thing.rb")
+          model_contents = File.readlines(model_file_path)
+          model_without_attached_hook = model_contents.reject.each { |line| line.include?("has_one_attached :#{name}") }
+          File.open(model_file_path, "w") do |f|
+            model_without_attached_hook.each { |line| f.write(line) }
+          end
+
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "has_one_attached :#{name}", HAS_ONE_HOOK, prepend: true)
+
+          scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "attr_accessor :#{name}_removal", ATTR_ACCESSORS_HOOK, prepend: true)
+          scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", remove_file_methods, METHODS_HOOK, prepend: true)
+          scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "after_validation :remove_#{name}, if: :#{name}_removal?", CALLBACKS_HOOK, prepend: true)
         when "trix_editor"
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "has_rich_text :#{name}", HAS_ONE_HOOK, prepend: true)
+        when "buttons"
+          if boolean_buttons
+            scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "validates :#{name}, inclusion: [true, false]", VALIDATIONS_HOOK, prepend: true)
+          end
         end
 
       end
@@ -1223,9 +1286,19 @@ class Scaffolding::Transformer
       else
         transform_string("association :absolutely_abstract_creative_concept, factory: :scaffolding_absolutely_abstract_creative_concept")
       end
+
       scaffold_replace_line_in_file("./test/factories/scaffolding/completely_concrete/tangible_things.rb", content, "absolutely_abstract_creative_concept { nil }")
 
       add_has_many_association
+
+      # Adds file attachment to factory
+      attributes.each do |attribute|
+        attribute_name, partial_type = attribute.split(":")
+        if partial_type == "file_field"
+          content = "#{attribute_name} { Rack::Test::UploadedFile.new(\"test/support/foo.txt\") }"
+          scaffold_replace_line_in_file("./test/factories/scaffolding/completely_concrete/tangible_things.rb", content, "#{attribute_name} { nil }")
+        end
+      end
 
       if class_names_transformer.belongs_to_needs_class_definition?
         scaffold_replace_line_in_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", transform_string("belongs_to :absolutely_abstract_creative_concept, class_name: \"Scaffolding::AbsolutelyAbstract::CreativeConcept\"\n"), transform_string("belongs_to :absolutely_abstract_creative_concept\n"))
@@ -1346,9 +1419,9 @@ class Scaffolding::Transformer
             puts "OK, great! Let's do this! By default these menu items appear with a puzzle piece, but after you hit enter I'll open two different pages where you can view other icon options. When you find one you like, hover your mouse over it and then come back here and and enter the name of the icon you want to use. (Or hit enter to skip this step.)"
             $stdin.gets.chomp
             if `which open`.present?
-              `open https://themify.me/themify-icons`
+              TerminalCommands.open_file_or_link("https://themify.me/themify-icons")
               if font_awesome?
-                `open https://fontawesome.com/icons?d=gallery&s=light`
+                TerminalCommands.open_file_or_link("https://fontawesome.com/icons?d=gallery&s=light")
               end
             else
               puts "Sorry! We can't open these URLs automatically on your platform, but you can visit them manually:"
@@ -1377,6 +1450,6 @@ class Scaffolding::Transformer
 
     add_additional_step :yellow, transform_string("If you would like the table view you've just generated to reactively update when a Tangible Thing is updated on the server, please edit `app/models/scaffolding/absolutely_abstract/creative_concept.rb`, locate the `has_many :completely_concrete_tangible_things`, and add `enable_updates: true` to it.")
 
-    restart_server
+    restart_server unless ENV["CI"].present?
   end
 end

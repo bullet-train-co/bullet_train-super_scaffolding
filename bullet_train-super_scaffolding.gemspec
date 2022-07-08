@@ -19,12 +19,15 @@ Gem::Specification.new do |spec|
   # spec.metadata["changelog_uri"] = "TODO: Put your gem's CHANGELOG.md URL here."
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
-    Dir["{app,config,db,exe,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
+    Dir["{app,config,db,exe,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", ".bt-link"]
   end
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
 
+  spec.add_development_dependency "standard"
+
   spec.add_dependency "rails", ">= 6.0.0"
+  spec.add_dependency "bullet_train"
 
   # For Super Scaffolding: "select *a* team member" vs. "select *an* option".
   spec.add_dependency "indefinite_article"

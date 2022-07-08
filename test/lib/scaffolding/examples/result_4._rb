@@ -145,23 +145,6 @@ Rails.application.routes.draw do
 
         resources :sites
 
-        namespace :imports do
-          namespace :csv do
-            unless scaffolding_things_disabled?
-              namespace :scaffolding do
-                resources :things_imports do
-                  collection do
-                    get :sample
-                  end
-                  member do
-                    get :rejected_lines
-                  end
-                end
-              end
-            end
-          end
-        end
-
         namespace :oauth do
           resources :stripe_accounts if stripe_enabled?
           resources :twitter_accounts if twitter_enabled?
@@ -240,13 +223,13 @@ Rails.application.routes.draw do
         scope module: 'teams' do
           resources :logs, only: collection_actions
         end
-
-        namespace :teams do
-          resources :logs, except: collection_actions
-        end
       end
       member do
         post :switch_to
+      end
+
+      namespace :teams do
+        resources :logs, except: collection_actions
       end
     end
   end
