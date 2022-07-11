@@ -1416,11 +1416,16 @@ class Scaffolding::Transformer
           icon_name = cli_options["sidebar"]
         else
           puts ""
-          puts "Hey, models that are scoped directly off of a Team (or nothing) are eligible to be added to the sidebar. Do you want to add this resource to the sidebar menu? (y/N)"
+          puts "Hey, models that are scoped directly off of a Team (or nothing) are eligible to be added to the sidebar."
+          puts "Do you want to add this resource to the sidebar menu? (y/N)"
           response = $stdin.gets.chomp
           if response.downcase[0] == "y"
             puts ""
-            puts "OK, great! Let's do this! By default these menu items appear with a puzzle piece, but after you hit enter I'll open two different pages where you can view other icon options. When you find one you like, hover your mouse over it and then come back here and and enter the name of the icon you want to use. (Or hit enter to skip this step.)"
+            puts "OK, great! Let's do this! By default these menu items appear with a puzzle piece,"
+            puts "but after you hit enter I'll open #{font_awesome? ? "two different pages" : "a page"} where you can view other icon options."
+            puts "When you find one you like, hover your mouse over it and then come back here and"
+            puts "enter the name of the icon you want to use."
+            puts "(Or hit enter when choosing to skip this step.)"
             $stdin.gets.chomp
             if (TerminalCommands.macosx? && `which open`.present?) || TerminalCommands.linux?
               TerminalCommands.open_file_or_link("https://themify.me/themify-icons")
@@ -1439,7 +1444,8 @@ class Scaffolding::Transformer
             puts ""
 
             loop do
-              puts "Did you find an icon you wanted to use? Enter the full CSS class here (e.g. 'ti ti-world'#{" or 'fal fa-puzzle-piece'" if font_awesome?}) or hit enter to just use the puzzle piece:"
+              puts "Did you find an icon you wanted to use?"
+              puts "Enter the full CSS class here (e.g. 'ti ti-world'#{" or 'fal fa-puzzle-piece'" if font_awesome?}) or hit enter to just use the puzzle piece:"
               icon_name = $stdin.gets.chomp
               unless icon_name.match?(/ti\s.*/) || icon_name.match?(/fal\s.*/) || icon_name.strip.empty?
                 puts ""
