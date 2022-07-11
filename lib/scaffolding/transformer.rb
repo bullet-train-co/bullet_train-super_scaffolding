@@ -1421,7 +1421,7 @@ class Scaffolding::Transformer
           response = $stdin.gets.chomp
           if response.downcase[0] == "y"
             puts ""
-            puts "OK, great! Let's do this! By default these menu items appear with a puzzle piece,"
+            puts "OK, great! Let's do this! By default these menu items appear with a #{font_awesome? ? "puzzle piece" : "present icon"},"
             puts "but after you hit enter I'll open #{font_awesome? ? "two different pages" : "a page"} where you can view other icon options."
             puts "When you find one you like, hover your mouse over it and then come back here and"
             puts "enter the name of the icon you want to use."
@@ -1445,7 +1445,7 @@ class Scaffolding::Transformer
 
             loop do
               puts "Did you find an icon you wanted to use?"
-              puts "Enter the full CSS class here (e.g. 'ti ti-world'#{" or 'fal fa-puzzle-piece'" if font_awesome?}) or hit enter to just use the puzzle piece:"
+              puts "Enter the full CSS class here (e.g. 'ti ti-world'#{" or 'fal fa-puzzle-piece'" if font_awesome?}) or hit enter to just use the #{font_awesome? ? "puzzle piece" : "present icon"}:"
               icon_name = $stdin.gets.chomp
               unless icon_name.match?(/ti\s.*/) || icon_name.match?(/fal\s.*/) || icon_name.strip.empty?
                 puts ""
