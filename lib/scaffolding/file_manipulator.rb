@@ -23,7 +23,7 @@ module Scaffolding::FileManipulator
     location_array.map!(&:to_s)
 
     # TODO: Raise an error if we're returning nil.
-    return nil if yml.dig(*location_array).nil? 
+    return nil if yml.dig(*location_array).nil?
 
     content += "\n" unless content[-1] == "\n"
     # Find the location in the file where the location_array is
