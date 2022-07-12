@@ -1,7 +1,7 @@
 require "scaffolding/block_manipulator"
 
 # TODO: If we move this and the BlockManipulator into their own gems,
-# we won't need to preface each call with `Scaffolding::`
+# we can probably call these methods with something shorter without `Scaffolding::`.
 module Scaffolding::FileManipulator
   def self.replace_line_in_file(file, content, in_place_of)
     target_file_content = File.read(file)
