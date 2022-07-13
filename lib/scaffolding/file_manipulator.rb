@@ -3,6 +3,20 @@ require "scaffolding/block_manipulator"
 # TODO: If we move this and the BlockManipulator into their own gems,
 # we can probably call these methods with something shorter without `Scaffolding::`.
 module Scaffolding::FileManipulator
+  # TODO: The block_manipulator shouldn't be an instance variable.
+  def self.find(lines, needle, within = nil, block_manipulator)
+    lines_within(lines, within, block_manipulator).each_with_index do |line, line_number|
+      return (within + (within ? 1 : 0) + line_number) if line.match?(needle)
+    end
+    nil
+  end
+
+  # TODO: The block_manipulator shouldn't be an instance variable.
+  def self.lines_within(lines, within, block_manipulator)
+    return lines unless within
+    lines[(within + 1)..(block_manipulator.find_block_end(starting_from: within, lines: lines) + 1)]
+  end
+
   def self.replace_line_in_file(file, content, in_place_of)
     target_file_content = File.read(file)
 
