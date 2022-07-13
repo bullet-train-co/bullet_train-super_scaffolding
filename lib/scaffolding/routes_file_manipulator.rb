@@ -389,12 +389,4 @@ class Scaffolding::RoutesFileManipulator
     return if concerns.empty?
     "concerns: #{concerns}"
   end
-
-  # TODO: Place in FileManipulator
-  def write
-    puts "Updating '#{@filename}'."
-    File.open(@filename, "w+") do |file|
-      file.puts(lines.join.strip + "\n")
-    end
-  end
 end

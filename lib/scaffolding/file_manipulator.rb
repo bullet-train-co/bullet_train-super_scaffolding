@@ -61,4 +61,11 @@ module Scaffolding::FileManipulator
     end
     File.write(file, new_lines.join)
   end
+
+  def self.write(file_name, lines)
+    puts "Updating '#{file_name}'."
+    File.open(file_name, "w+") do |file|
+      file.puts(lines.join.strip + "\n")
+    end
+  end
 end
