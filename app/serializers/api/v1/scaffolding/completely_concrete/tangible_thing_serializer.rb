@@ -1,5 +1,6 @@
 class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingSerializer < Api::V1::ApplicationSerializer
   set_type "scaffolding/completely_concrete/tangible_thing"
+  singleton_class.include Rails.application.routes.url_helpers
 
   attributes :id,
     :absolutely_abstract_creative_concept_id,
@@ -24,6 +25,8 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingSerializer < Api::V
     # 🚅 super scaffolding will insert new fields above this line.
     :created_at,
     :updated_at
+
+  # 🚅 super scaffolding will insert file-related logic above this line.
 
   belongs_to :absolutely_abstract_creative_concept, serializer: Api::V1::Scaffolding::AbsolutelyAbstract::CreativeConceptSerializer
 end
