@@ -13,7 +13,6 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingSerializer < Api::V
     :date_field_value,
     :date_and_time_field_value,
     :email_field_value,
-    :file_field_value,
     :password_field_value,
     :phone_field_value,
     :option_value,
