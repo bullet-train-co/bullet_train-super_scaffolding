@@ -1,5 +1,6 @@
 require "indefinite_article"
 require "yaml"
+require "scaffolding/file_manipulator"
 require "scaffolding/class_names_transformer"
 
 class Scaffolding::Transformer
@@ -20,6 +21,7 @@ class Scaffolding::Transformer
   RUBY_NEW_FIELDS_HOOK = "# 🚅 super scaffolding will insert new fields above this line."
   RUBY_ADDITIONAL_NEW_FIELDS_HOOK = "# 🚅 super scaffolding will also insert new fields above this line."
   RUBY_EVEN_MORE_NEW_FIELDS_HOOK = "# 🚅 super scaffolding will additionally insert new fields above this line."
+  RUBY_FILES_HOOK = "# 🚅 super scaffolding will insert file-related logic above this line."
   ENDPOINTS_HOOK = "# 🚅 super scaffolding will mount new endpoints above this line."
   ERB_NEW_FIELDS_HOOK = "<%#{RUBY_NEW_FIELDS_HOOK} %>"
   CONCERNS_HOOK = "# 🚅 add concerns above."
@@ -235,36 +237,6 @@ class Scaffolding::Transformer
     end
   end
 
-  # pass in an array where this content should be inserted within the yml file.  For example, to add content
-  # to admin.models pass in [:admin, :models]
-  def add_line_to_yml_file(file, content, location_array)
-    # First check that the given location array actually exists in the yml file:
-    yml = YAML.safe_load(File.read(file))
-    location_array.map!(&:to_s)
-    return nil if yml.dig(*location_array).nil? # Should we raise an error?
-    content += "\n" unless content[-1] == "\n"
-    # Find the location in the file where the location_array is
-    lines = File.readlines(file)
-    current_needle = location_array.shift.to_s
-    current_space = ""
-    insert_after = 1
-    lines.each_with_index do |line, index|
-      break if current_needle.nil?
-      if line.strip == current_needle + ":"
-        current_needle = location_array.shift.to_s
-        insert_after = index
-        current_space = line.match(/\s+/).to_s
-      end
-    end
-    new_lines = []
-    current_space += "  "
-    lines.each_with_index do |line, index|
-      new_lines << line
-      new_lines << current_space + content if index == insert_after
-    end
-    File.write(file, new_lines.join)
-  end
-
   def add_line_to_file(file, content, hook, options = {})
     increase_indent = options[:increase_indent]
     add_before = options[:add_before]
@@ -346,23 +318,11 @@ class Scaffolding::Transformer
     add_line_to_file(file, content, hook, options)
   end
 
-  def replace_line_in_file(file, content, in_place_of)
-    target_file_content = File.read(file)
-
-    if target_file_content.include?(content)
-      puts "No need to update '#{file}'. It already has '#{content}'."
-    else
-      puts "Updating '#{file}'."
-      target_file_content.gsub!(in_place_of, content)
-      File.write(file, target_file_content)
-    end
-  end
-
   def scaffold_replace_line_in_file(file, content, in_place_of)
     file = transform_string(file)
     # we specifically don't transform the content, we assume a builder function created this content.
     in_place_of = transform_string(in_place_of)
-    replace_line_in_file(file, content, in_place_of)
+    Scaffolding::FileManipulator.replace_line_in_file(file, content, in_place_of)
   end
 
   # if class_name isn't specified, we use `child`.
@@ -451,8 +411,8 @@ class Scaffolding::Transformer
     model_names = class_names || [child]
     role_file = "./config/models/roles.yml"
     model_names.each do |model_name|
-      add_line_to_yml_file(role_file, "#{model_name}: read", [:default, :models])
-      add_line_to_yml_file(role_file, "#{model_name}: manage", [:admin, :models])
+      Scaffolding::FileManipulator.add_line_to_yml_file(role_file, "#{model_name}: read", [:default, :models])
+      Scaffolding::FileManipulator.add_line_to_yml_file(role_file, "#{model_name}: manage", [:admin, :models])
     end
   end
 
@@ -480,7 +440,7 @@ class Scaffolding::Transformer
       current_parent = working_parents.pop
     end
 
-    setup_lines << current_transformer.transform_string("@tangible_thing = create(:scaffolding_completely_concrete_tangible_thing, #{previous_assignment})")
+    setup_lines << current_transformer.transform_string("@tangible_thing = build(:scaffolding_completely_concrete_tangible_thing, #{previous_assignment})")
 
     setup_lines
   end
@@ -615,7 +575,9 @@ class Scaffolding::Transformer
       is_id = name.match?(/_id$/)
       is_ids = name.match?(/_ids$/)
       # if this is the first attribute of a newly scaffolded model, that field is required.
-      is_required = attribute_options[:required] || (scaffolding_options[:type] == :crud && index == 0)
+      unless type == "file_field"
+        is_required = attribute_options[:required] || (scaffolding_options[:type] == :crud && index == 0)
+      end
       is_vanilla = attribute_options&.key?(:vanilla)
       is_belongs_to = is_id && !is_vanilla
       is_has_many = is_ids && !is_vanilla
@@ -653,6 +615,8 @@ class Scaffolding::Transformer
         "date_and_time"
       when "email_field"
         "email"
+      when "emoji_field"
+        "text"
       when "color_picker"
         "code"
       when "text_field"
@@ -660,7 +624,7 @@ class Scaffolding::Transformer
       when "text_area"
         "text"
       when "file_field"
-        "text"
+        "file"
       else
         raise "Invalid attribute type: #{type}."
       end
@@ -765,14 +729,19 @@ class Scaffolding::Transformer
         # field on the form.
         field_attributes = {method: ":#{name}"}
         field_options = {}
+        options = {}
 
         if scaffolding_options[:type] == :crud && index == 0
           field_options[:autofocus] = "true"
         end
 
         if is_id && type == "super_select"
-          field_options[:include_blank] = "t('.fields.#{name}.placeholder')"
+          options[:include_blank] = "t('.fields.#{name}.placeholder')"
           # add_additional_step :yellow, transform_string("We've added a reference to a `placeholder` to the form for the select or super_select field, but unfortunately earlier versions of the scaffolded locales Yaml don't include a reference to `fields: *fields` under `form`. Please add it, otherwise your form won't be able to locate the appropriate placeholder label.")
+        end
+
+        if type == "color_picker"
+          field_options[:color_picker_options] = "t('#{child.pluralize.underscore}.fields.color_picker_value.options')"
         end
 
         # TODO: This feels incorrect.
@@ -792,12 +761,19 @@ class Scaffolding::Transformer
         end
 
         # https://stackoverflow.com/questions/21582464/is-there-a-ruby-hashto-s-equivalent-for-the-new-hash-syntax
-        if field_options.any?
+        if field_options.any? || options.any?
           field_options_key = if ["buttons", "super_select", "options"].include?(type)
+            if options.any?
+              field_attributes[:options] = "{" + field_options.map { |key, value| "#{key}: #{value}" }.join(", ") + "}"
+            end
+
             :html_options
           else
+            field_options.merge!(options)
+
             :options
           end
+
           field_attributes[field_options_key] = "{" + field_options.map { |key, value| "#{key}: #{value}" }.join(", ") + "}"
         end
 
@@ -1034,7 +1010,7 @@ class Scaffolding::Transformer
         # TODO The serializers can't handle these `has_rich_text` attributes.
         unless type == "trix_editor"
           scaffold_add_line_to_file("./app/views/account/scaffolding/completely_concrete/tangible_things/_tangible_thing.json.jbuilder", ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true, suppress_could_not_find: true)
-          scaffold_add_line_to_file("./app/serializers/api/v1/scaffolding/completely_concrete/tangible_thing_serializer.rb", ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true)
+          scaffold_add_line_to_file("./app/serializers/api/v1/scaffolding/completely_concrete/tangible_thing_serializer.rb", ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true) unless type == "file_field"
 
           assertion = case type
           when "date_field"
@@ -1043,11 +1019,29 @@ class Scaffolding::Transformer
             "assert_equal DateTime.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
           when "file_field"
             # TODO: If we want to use Cloudinary to handle our files, we should make sure we're getting a URL.
-            "assert_equal tangible_thing_data['#{name}']['record']['id'], tangible_thing.#{name}.record.id"
+            "assert tangible_thing_data['#{name}'].match?('foo.txt') unless response.status == 201"
           else
             "assert_equal tangible_thing_data['#{name}'], tangible_thing.#{name}"
           end
           scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", assertion, RUBY_NEW_FIELDS_HOOK, prepend: true)
+        end
+
+        # File fields are handled in a specific way when using the jsonapi-serializer.
+        if type == "file_field"
+          file_name = "./app/serializers/api/v1/scaffolding/completely_concrete/tangible_thing_serializer.rb"
+          content = <<~RUBY
+            attribute :#{name} do |object|
+              rails_blob_path(object.#{name}, disposition: "attachment", only_path: true) if object.#{name}.attached?
+            end
+
+          RUBY
+          hook = RUBY_FILES_HOOK
+          scaffold_add_line_to_file(file_name, content, hook, prepend: true)
+
+          # We also want to make sure we attach the dummy file in the endpoint test on setup
+          file_name = "./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb"
+          content = "@#{child.underscore}.#{name} = Rack::Test::UploadedFile.new(\"test/support/foo.txt\")"
+          scaffold_add_line_to_file(file_name, content, hook, prepend: true)
         end
 
         # scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller_test.rb", "assert_equal tangible_thing_attributes['#{name.gsub('_', '-')}'], tangible_thing.#{name}", RUBY_NEW_FIELDS_HOOK, prepend: true)
@@ -1291,15 +1285,6 @@ class Scaffolding::Transformer
 
       add_has_many_association
 
-      # Adds file attachment to factory
-      attributes.each do |attribute|
-        attribute_name, partial_type = attribute.split(":")
-        if partial_type == "file_field"
-          content = "#{attribute_name} { Rack::Test::UploadedFile.new(\"test/support/foo.txt\") }"
-          scaffold_replace_line_in_file("./test/factories/scaffolding/completely_concrete/tangible_things.rb", content, "#{attribute_name} { nil }")
-        end
-      end
-
       if class_names_transformer.belongs_to_needs_class_definition?
         scaffold_replace_line_in_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", transform_string("belongs_to :absolutely_abstract_creative_concept, class_name: \"Scaffolding::AbsolutelyAbstract::CreativeConcept\"\n"), transform_string("belongs_to :absolutely_abstract_creative_concept\n"))
       end
@@ -1347,7 +1332,7 @@ class Scaffolding::Transformer
       end
 
       unless cli_options["skip-table"]
-        scaffold_replace_line_in_file("./app/views/account/scaffolding/completely_concrete/tangible_things/_index.html.erb", transform_string("<tbody data-reorder=\"<%= url_for [:reorder, :account, context, collection] %>\">"), "<tbody>")
+        scaffold_replace_line_in_file("./app/views/account/scaffolding/completely_concrete/tangible_things/_index.html.erb", transform_string("<tbody data-controller=\"sortable\" data-sortable-reorder-path-value=\"<%= url_for [:reorder, :account, context, collection] %>\">"), "<tbody>")
       end
 
       unless cli_options["skip-controller"]
@@ -1401,7 +1386,7 @@ class Scaffolding::Transformer
         add_additional_step :yellow, "We weren't able to automatically add your `#{routes_namespace}` routes for you. In theory this should be very rare, so if you could reach out on Slack, you could probably provide context that will help us fix whatever the problem was. In the meantime, to add the routes manually, we've got a guide at https://blog.bullettrain.co/nested-namespaced-rails-routing-examples/ ."
       end
 
-      routes_manipulator.write
+      Scaffolding::FileManipulator.write("config/routes.rb", routes_manipulator.lines)
     end
 
     unless cli_options["skip-parent"]
@@ -1412,13 +1397,18 @@ class Scaffolding::Transformer
           icon_name = cli_options["sidebar"]
         else
           puts ""
-          puts "Hey, models that are scoped directly off of a Team (or nothing) are eligible to be added to the sidebar. Do you want to add this resource to the sidebar menu? (y/N)"
+          puts "Hey, models that are scoped directly off of a Team (or nothing) are eligible to be added to the sidebar."
+          puts "Do you want to add this resource to the sidebar menu? (y/N)"
           response = $stdin.gets.chomp
           if response.downcase[0] == "y"
             puts ""
-            puts "OK, great! Let's do this! By default these menu items appear with a puzzle piece, but after you hit enter I'll open two different pages where you can view other icon options. When you find one you like, hover your mouse over it and then come back here and and enter the name of the icon you want to use. (Or hit enter to skip this step.)"
+            puts "OK, great! Let's do this! By default these menu items appear as a #{font_awesome? ? "puzzle piece" : "gift icon"},"
+            puts "but after you hit enter I'll open #{font_awesome? ? "two different pages" : "a page"} where you can view other icon options."
+            puts "When you find one you like, hover your mouse over it and then come back here and"
+            puts "enter the name of the icon you want to use."
+            puts "(Or hit enter when choosing to skip this step.)"
             $stdin.gets.chomp
-            if `which open`.present?
+            if (TerminalCommands.macosx? && `which open`.present?) || TerminalCommands.linux?
               TerminalCommands.open_file_or_link("https://themify.me/themify-icons")
               if font_awesome?
                 TerminalCommands.open_file_or_link("https://fontawesome.com/icons?d=gallery&s=light")
@@ -1433,8 +1423,18 @@ class Scaffolding::Transformer
               puts ""
             end
             puts ""
-            puts "Did you find an icon you wanted to use? Enter the full CSS class here (e.g. 'ti ti-world'#{" or 'fal fa-puzzle-piece'" if font_awesome?}) or hit enter to just use the puzzle piece:"
-            icon_name = $stdin.gets.chomp
+
+            loop do
+              puts "Did you find an icon you wanted to use?"
+              puts "Enter the full CSS class here (e.g. 'ti ti-world'#{" or 'fal fa-puzzle-piece'" if font_awesome?}) or hit enter to just use the #{font_awesome? ? "puzzle piece" : "gift icon"}:"
+              icon_name = $stdin.gets.chomp
+              unless icon_name.match?(/ti\s.*/) || icon_name.match?(/fal\s.*/) || icon_name.strip.empty?
+                puts ""
+                puts "Please enter the full CSS class or hit enter."
+                next
+              end
+              break
+            end
             puts ""
             unless icon_name.length > 0 || icon_name.downcase == "y"
               icon_name = "fal fa-puzzle-piece ti ti-gift"
