@@ -28,5 +28,11 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingSerializer < Api::V
 
   # 🚅 super scaffolding will insert file-related logic above this line.
 
+  # 🚅 skip this section when scaffolding.
+  attribute :file_field_value do |object|
+    rails_blob_path(object.file_field_value, disposition: "attachment", only_path: true) if object.file_field_value.attached?
+  end
+  # 🚅 stop any skipping we're doing now.
+
   belongs_to :absolutely_abstract_creative_concept, serializer: Api::V1::Scaffolding::AbsolutelyAbstract::CreativeConceptSerializer
 end
