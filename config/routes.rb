@@ -1,4 +1,8 @@
+require "scaffolding/utils"
+
 Rails.application.routes.draw do
+  extend Scaffolding::Utils
+
   collection_actions = [:index, :new, :create]
 
   namespace :account do
