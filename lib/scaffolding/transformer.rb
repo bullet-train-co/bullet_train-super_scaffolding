@@ -626,7 +626,7 @@ class Scaffolding::Transformer
       when "file_field"
         "file"
       when "password_field"
-        "string"
+        "text"
       else
         raise "Invalid field type: #{type}."
       end
