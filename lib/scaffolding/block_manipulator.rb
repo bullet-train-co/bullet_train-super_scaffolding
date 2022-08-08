@@ -104,11 +104,6 @@ module Scaffolding::BlockManipulator
     lines = insert_line(block_content[1], block_end + 1, lines)
   end
 
-  # TODO: Delete this because it only really needs to be in the FileManipulator
-  def write
-    File.write(@filepath, @lines.join)
-  end
-
   def find_block_parent(starting_line_number, lines)
     return nil unless indentation_of(starting_line_number, lines)
     cursor = starting_line_number
