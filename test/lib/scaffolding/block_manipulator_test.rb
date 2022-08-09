@@ -21,7 +21,7 @@ describe Scaffolding::BlockManipulator do
     File.write(file_path, data)
   end
 
-  it "Inserts within a block and after the given location" do
+  it "inserts within a block and after the given location" do
     initial_data =
       <<~INITIAL
 
@@ -79,7 +79,7 @@ describe Scaffolding::BlockManipulator do
     assert_equal(File.read(file_path), expected_result)
   end
 
-  it "Inserts content after the given block" do
+  it "inserts content after the given block" do
     initial_data =
       <<~INITIAL
 
@@ -135,7 +135,7 @@ describe Scaffolding::BlockManipulator do
     assert_equal(File.read(file_path), expected_result)
   end
 
-  it "Inserts within an if statement" do
+  it "inserts within an if statement" do
     initial_data =
       <<~INITIAL
 
@@ -196,7 +196,7 @@ describe Scaffolding::BlockManipulator do
     assert_equal(File.read(file_path), expected_result)
   end
 
-  it "Wraps a block with a new block" do
+  it "wraps a block with a new block" do
     initial_data =
       <<~DATA
 
@@ -223,7 +223,7 @@ describe Scaffolding::BlockManipulator do
     assert_equal(File.read(file_path), expected_result)
   end
 
-  it "Wraps a nested block" do
+  it "wraps a nested block" do
     initial_data =
       <<~INITIAL
 
