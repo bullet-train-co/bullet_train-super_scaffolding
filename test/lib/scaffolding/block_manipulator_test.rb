@@ -206,7 +206,7 @@ describe Scaffolding::BlockManipulator do
       DATA
     initialize_demo_file(file_path, initial_data)
     initial_lines = File.readlines(file_path)
-    
+
     new_lines = Scaffolding::BlockManipulator.wrap_block(starting: "<% test_block", with: ["<% outer_block do %>", "<% end %>"], lines: initial_lines)
     Scaffolding::FileManipulator.write(file_path, new_lines, strip: false)
 

@@ -41,7 +41,7 @@ module Scaffolding::BlockManipulator
     lines
   end
 
-  def self.insert(content, within: nil, after: nil, before: nil, after_block: nil, append: false, lines:)
+  def self.insert(content, lines:, within: nil, after: nil, before: nil, after_block: nil, append: false)
     # Search for before like we do after, we'll just inject before it.
     after ||= before
 
@@ -81,6 +81,7 @@ module Scaffolding::BlockManipulator
     if append && !match
       lines = insert_line(content, index - 1, lines)
     end
+    lines
   end
 
   def self.insert_line(content, insert_at_index, lines)
@@ -100,7 +101,7 @@ module Scaffolding::BlockManipulator
     block_start = find_block_start(starting_from: after_block, lines: lines)
     block_end = find_block_end(starting_from: block_start, lines: lines)
     lines = insert_line(block_content[0], block_end, lines)
-    lines = insert_line(block_content[1], block_end + 1, lines)
+    insert_line(block_content[1], block_end + 1, lines)
   end
 
   def self.find_block_parent(starting_line_number, lines)
