@@ -108,7 +108,7 @@ module Scaffolding::BlockManipulator
     File.write(file_path, lines.join)
   end
 
-  def find_block_parent(starting_line_number, lines)
+  def self.find_block_parent(starting_line_number, lines)
     return nil unless indentation_of(starting_line_number, lines)
     cursor = starting_line_number
     while cursor >= 0
