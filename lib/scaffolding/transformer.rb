@@ -1069,8 +1069,8 @@ class Scaffolding::Transformer
           end
         end
 
-        # We need to update the jbuilder views for our
-        # new Tangible Thing if it's scoped under "account".
+        # We need to update our new Tangible Thing's
+        # jbuilder files if it's scoped under "account".
         # TODO: Should we run this if `namespace.present?` instead?
         if namespace == "account"
           target_string = "#{transform_string("scaffolding/completely_concrete/tangible_things")}/#{transform_string("tangible_thing")}"
