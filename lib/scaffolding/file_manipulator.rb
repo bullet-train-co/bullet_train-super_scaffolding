@@ -23,7 +23,7 @@ module Scaffolding::FileManipulator
     if target_file_content.include?(content)
       puts "No need to update '#{file}'. It already has '#{content}'."
     else
-      puts "Updating '#{file}'."
+      puts "Updating '#{file}'." unless silence_logs?
       target_file_content.gsub!(in_place_of, content)
       File.write(file, target_file_content)
     end
@@ -63,7 +63,7 @@ module Scaffolding::FileManipulator
   end
 
   def self.write(file_name, lines)
-    puts "Updating '#{file_name}'."
+    puts "Updating '#{file_name}'." unless silence_logs?
     File.open(file_name, "w+") do |file|
       file.puts(lines.join.strip + "\n")
     end
