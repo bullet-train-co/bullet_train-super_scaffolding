@@ -18,10 +18,12 @@ class Scaffolding::Transformer
   def approved_by_reference(approved_by_index_name)
   end
 
-  def has_one_team_replacement
+  def permit_parents
+    ["Team"]
   end
 
-  def has_one_to_dedupe
+  def last_joinable_parent
+    "Team"
   end
 
   def update_action_models_abstract_class(targets_n)
@@ -351,7 +353,7 @@ class Scaffolding::Transformer
     file = transform_string(file)
     # we specifically don't transform the content, we assume a builder function created this content.
     in_place_of = transform_string(in_place_of)
-    Scaffolding::FileManipulator.replace_line_in_file(file, content, in_place_of)
+    Scaffolding::FileManipulator.replace_line_in_file(file, content, in_place_of, suppress_could_not_find: suppress_could_not_find)
   end
 
   # if class_name isn't specified, we use `child`.
@@ -1045,14 +1047,14 @@ class Scaffolding::Transformer
 
           assertion = case type
           when "date_field"
-            "assert_equal Date.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
+            "assert_equal_or_nil Date.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
           when "date_and_time_field"
-            "assert_equal DateTime.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
+            "assert_equal_or_nil DateTime.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
           when "file_field"
             # TODO: If we want to use Cloudinary to handle our files, we should make sure we're getting a URL.
             "assert tangible_thing_data['#{name}'].match?('foo.txt') unless response.status == 201"
           else
-            "assert_equal tangible_thing_data['#{name}'], tangible_thing.#{name}"
+            "assert_equal_or_nil tangible_thing_data['#{name}'], tangible_thing.#{name}"
           end
           scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", assertion, RUBY_NEW_FIELDS_HOOK, prepend: true)
         end
@@ -1081,6 +1083,20 @@ class Scaffolding::Transformer
           unless attribute_options[:readonly]
             scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", "#{name}: #{attribute_assignment},", RUBY_ADDITIONAL_NEW_FIELDS_HOOK, prepend: true)
             scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_endpoint_test.rb", "assert_equal @tangible_thing.#{name}, #{attribute_assignment}", RUBY_EVEN_MORE_NEW_FIELDS_HOOK, prepend: true)
+          end
+        end
+
+        # We need to update our new Tangible Thing's
+        # jbuilder files if it's scoped under "account".
+        # TODO: Should we run this if `namespace.present?` instead?
+        if namespace == "account"
+          target_string = "#{transform_string("scaffolding/completely_concrete/tangible_things")}/#{transform_string("tangible_thing")}"
+          replacement_string = "#{namespace}/#{target_string}"
+          [
+            "app/views/account/completely_concrete/tangible_things/index.json.jbuilder",
+            "app/views/account/completely_concrete/tangible_things/show.json.jbuilder"
+          ].each do |path|
+            scaffold_replace_line_in_file(path, replacement_string, target_string)
           end
         end
       end
@@ -1420,8 +1436,9 @@ class Scaffolding::Transformer
 
       begin
         routes_manipulator.apply([routes_namespace])
-      rescue
-        add_additional_step :yellow, "We weren't able to automatically add your `#{routes_namespace}` routes for you. In theory this should be very rare, so if you could reach out on Slack, you could probably provide context that will help us fix whatever the problem was. In the meantime, to add the routes manually, we've got a guide at https://blog.bullettrain.co/nested-namespaced-rails-routing-examples/ ."
+      rescue => e
+        puts "We weren't able to automatically add your `#{routes_namespace}` routes for you. In theory this should be very rare, so if you could reach out on Slack, you could probably provide context that will help us fix whatever the problem was. In the meantime, to add the routes manually, we've got a guide at https://blog.bullettrain.co/nested-namespaced-rails-routing-examples/ .".send(:yellow)
+        raise e
       end
 
       Scaffolding::FileManipulator.write("config/routes.rb", routes_manipulator.lines)
