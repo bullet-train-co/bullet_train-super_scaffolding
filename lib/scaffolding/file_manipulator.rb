@@ -66,7 +66,7 @@ module Scaffolding::FileManipulator
   end
 
   def self.write(file_name, lines, strip: true)
-    puts "Updating '#{file_name}'." unless silence_logs?
+    puts "Updating '#{file_name}'." unless ENV["SILENCE_LOGS"].present?
     if strip
       File.open(file_name, "w+") do |file|
         file.puts(lines.join.strip + "\n")
