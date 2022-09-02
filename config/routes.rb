@@ -12,7 +12,7 @@ Rails.application.routes.draw do
                   scope module: "creative_concepts" do
                     resources :collaborators, only: collection_actions
                   end
-  
+
                   namespace :creative_concepts do
                     resources :collaborators, except: collection_actions
                   end
@@ -29,7 +29,7 @@ Rails.application.routes.draw do
       end
     end
   end
-  
+
   namespace :account do
     shallow do
       resources :teams do

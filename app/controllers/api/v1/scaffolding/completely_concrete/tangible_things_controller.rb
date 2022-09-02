@@ -63,7 +63,7 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingsController < Api::
         # 🚅 skip this section when scaffolding.
         multiple_button_values: [],
         multiple_option_values: [],
-        multiple_super_select_values: [],
+        multiple_super_select_values: []
         # 🚅 stop any skipping we're doing now.
         # 🚅 super scaffolding will insert new arrays above this line.
       )

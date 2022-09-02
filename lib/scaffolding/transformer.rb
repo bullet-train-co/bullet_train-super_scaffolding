@@ -1254,7 +1254,7 @@ class Scaffolding::Transformer
         "./app/views/api/v1/scaffolding/completely_concrete/tangible_things",
         ("./config/locales/en/scaffolding/completely_concrete/tangible_things.en.yml" unless cli_options["skip-locales"]),
         ("./app/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller.rb" unless cli_options["skip-api"]),
-        ("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller_test.rb" unless cli_options["skip-api"]),
+        ("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller_test.rb" unless cli_options["skip-api"])
         # "./app/filters/scaffolding/completely_concrete/tangible_things_filter.rb"
       ].compact
     end
