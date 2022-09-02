@@ -1052,23 +1052,11 @@ class Scaffolding::Transformer
 
         # File fields are handled in a specific way when using the jsonapi-serializer.
         if type == "file_field"
-          file_name = "./app/serializers/api/v1/scaffolding/completely_concrete/tangible_thing_serializer.rb"
-          content = <<~RUBY
-            attribute :#{name} do |object|
-              rails_blob_path(object.#{name}, disposition: "attachment", only_path: true) if object.#{name}.attached?
-            end
-
-          RUBY
-          hook = RUBY_FILES_HOOK
-          scaffold_add_line_to_file(file_name, content, hook, prepend: true)
-
           # We also want to make sure we attach the dummy file in the API test on setup
           file_name = "./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller_test.rb"
           content = "@#{child.underscore}.#{name} = Rack::Test::UploadedFile.new(\"test/support/foo.txt\")"
-          scaffold_add_line_to_file(file_name, content, hook, prepend: true)
+          scaffold_add_line_to_file(file_name, content, RUBY_FILES_HOOK, prepend: true)
         end
-
-        # scaffold_add_line_to_file("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller_test.rb", "assert_equal tangible_thing_attributes['#{name.gsub('_', '-')}'], tangible_thing.#{name}", RUBY_NEW_FIELDS_HOOK, prepend: true)
 
         if attribute_assignment
           unless attribute_options[:readonly]
@@ -1264,7 +1252,6 @@ class Scaffolding::Transformer
         ("./config/locales/en/scaffolding/completely_concrete/tangible_things.en.yml" unless cli_options["skip-locales"]),
         ("./app/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller.rb" unless cli_options["skip-api"]),
         ("./test/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller_test.rb" unless cli_options["skip-api"]),
-        ("./app/serializers/api/v1/scaffolding/completely_concrete/tangible_thing_serializer.rb" unless cli_options["skip-api"])
         # "./app/filters/scaffolding/completely_concrete/tangible_things_filter.rb"
       ].compact
     end
