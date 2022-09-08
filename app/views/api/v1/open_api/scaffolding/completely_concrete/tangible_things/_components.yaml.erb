@@ -1,27 +1,15 @@
+<% extend JbuilderSchema %>
+
 Scaffolding::CompletelyConcrete::TangibleThing::Attributes:
-  type: object
-  properties:
-    <%= attribute :id %>
-    <%= attribute :absolutely_abstract_creative_concept_id %>
-    <%# 🚅 skip this section when scaffolding. %>
-    <%= attribute :text_field_value %>
-    <%= attribute :button_value %>
-    <%= attribute :boolean_button_value %>
-    <%= attribute :cloudinary_image_value %>
-    <%= attribute :date_field_value %>
-    <%= attribute :email_field_value %>
-    <%= attribute :file_field_value %>
-    <%= attribute :password_field_value %>
-    <%= attribute :phone_field_value %>
-    <%= attribute :option_value %>
-    <%= attribute :multiple_option_values %>
-    <%= attribute :super_select_value %>
-    <%= attribute :text_area_value %>
-    <%= attribute :action_text_value %>
-    <%# 🚅 stop any skipping we're doing now. %>
-    <%# 🚅 super scaffolding will insert new attributes above this line. %>
-    <%= attribute :created_at %>
-    <%= attribute :updated_at %>
+  <%= jbuilder_schema "api/v1/scaffolding/completely_concrete/tangible_things/_tangible_thing",
+                      format: :yaml,
+                      model: current_model,
+                      title: t("#{current_model.name.underscore.pluralize}.label"), # Here we'd need a singular form
+                      description: "No description", # Find where the description for what TangibleThing is
+                      locals: {
+                        tangible_thing: FactoryBot.build(:scaffolding_completely_concrete_tangible_thing, id: 1, created_at: Time.now, updated_at: Time.now)
+                      }
+   %>
 
 Scaffolding::CompletelyConcrete::TangibleThing::Parameters:
   type: object
