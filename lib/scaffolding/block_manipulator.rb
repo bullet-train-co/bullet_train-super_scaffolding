@@ -41,9 +41,17 @@ module Scaffolding::BlockManipulator
     lines
   end
 
-  def self.insert(content, lines:, within: nil, after: nil, before: nil, after_block: nil, append: false)
+  def self.insert(content, lines:, within: nil, insertion_point: nil, after: nil, before: nil, after_block: nil, append: false)
     # Search for before like we do after, we'll just inject before it.
     after ||= before
+
+    # TODO: For compatibility with the RoutesFileManipulator, since
+    # `within` over there is always an integer.
+    unless within.nil?
+      if within.is_a?(Integer)
+        within = lines[within]
+      end
+    end
 
     # If within is given, find the start and end lines of the block
     content += "\n" unless content.match?(/\n$/)
@@ -63,16 +71,28 @@ module Scaffolding::BlockManipulator
     end
     index = start_line
     match = false
-    while index < end_line && !match
-      line = lines[index]
-      if after.nil? || line.match?(after)
-        unless append
-          match = true
-          # We adjust the injection point if we really wanted to insert before.
-          lines = insert_line(content, index - (before ? 1 : 0), lines)
+
+    # If the new line we want to add is being added directly
+    # after a block, we add a new line to put space between the two.
+    if /^\s*end\s*$/.match?(lines[insertion_point - 1])
+      content = "\n#{content}"
+    end
+
+    if insertion_point.present?
+      lines = insert_line(content, insertion_point - (before ? 1 : 0), lines)
+      return lines
+    else
+      while index < end_line && !match
+        line = lines[index]
+        if after.nil? || line.match?(after)
+          unless append
+            match = true
+            # We adjust the injection point if we really wanted to insert before.
+            lines = insert_line(content, index - (before ? 1 : 0), lines)
+          end
         end
+        index += 1
       end
-      index += 1
     end
 
     return lines if match
