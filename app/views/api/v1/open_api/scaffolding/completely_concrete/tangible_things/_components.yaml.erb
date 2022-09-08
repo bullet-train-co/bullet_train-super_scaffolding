@@ -1,8 +1,10 @@
 <% extend JbuilderSchema %>
 
 Scaffolding::CompletelyConcrete::TangibleThing::Attributes:
+
   <%= jbuilder_schema "api/v1/scaffolding/completely_concrete/tangible_things/_tangible_thing",
                       format: :yaml,
+                      paths: view_paths.map(&:path),
                       model: current_model,
                       title: t("#{current_model.name.underscore.pluralize}.label"), # Here we'd need a singular form
                       description: "No description", # Find where the description for what TangibleThing is
