@@ -216,7 +216,23 @@ class Scaffolding::RoutesFileManipulator
     options[:ignore] = top_level_namespace_block_lines(options[:within]) || []
 
     unless (result = find_resource([resource], options))
-      result = insert(["resources :#{resource}" + (options[:options] ? ", #{options[:options]}" : "")], namespace_within || options[:within])
+      # We want to place this at the end of the block.
+      insertion_point = Scaffolding::BlockManipulator.find_block_end(starting_from: options[:within], lines: lines)
+      block_indentation = Scaffolding::BlockManipulator.indentation_of(insertion_point, lines) + "  "
+
+      # We set `before` to true to make sure the line sits right above the block's `end`.
+      new_lines = Scaffolding::BlockManipulator.insert(
+        "#{block_indentation}resources :#{resource}" + (options[:options] ? ", #{options[:options]}" : ""),
+        within: namespace_within || options[:within],
+        insertion_point: insertion_point,
+        before: true,
+        lines: @lines,
+      )
+
+      # TODO: We still have to update the lines for now, but we should do away with @lines eventually.
+      @lines = new_lines
+      Scaffolding::FileManipulator.write("config/routes.rb", new_lines)
+      result = lines.index(insertion_point)
     end
     result
   end
