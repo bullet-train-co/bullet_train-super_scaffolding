@@ -231,8 +231,8 @@ class Scaffolding::RoutesFileManipulator
 
       # TODO: We still have to update the lines for now, but we should do away with @lines eventually.
       @lines = new_lines
-      Scaffolding::FileManipulator.write("config/routes.rb", new_lines)
-      result = lines.index(insertion_point)
+      Scaffolding::FileManipulator.write(@filename, new_lines)
+      result = lines[insertion_point]
     end
     result
   end
