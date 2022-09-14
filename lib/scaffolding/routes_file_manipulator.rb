@@ -232,6 +232,8 @@ class Scaffolding::RoutesFileManipulator
       # TODO: We still have to update the lines for now, but we should do away with @lines eventually.
       @lines = new_lines
       Scaffolding::FileManipulator.write(@filename, new_lines)
+
+      # TODO: I think this should be an int instead of the line itself
       result = lines[insertion_point]
     end
     result
