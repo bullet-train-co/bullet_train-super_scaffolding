@@ -218,11 +218,12 @@ class Scaffolding::RoutesFileManipulator
     unless (result = find_resource([resource], options))
       # We want to place this at the end of the block.
       insertion_point = Scaffolding::BlockManipulator.find_block_end(starting_from: options[:within], lines: lines)
-      block_indentation = Scaffolding::BlockManipulator.indentation_of(insertion_point, lines) + "  "
+      block_indentation = Scaffolding::BlockManipulator.indentation_of(insertion_point, lines)
+      line_to_add = "resources :#{resource}" + (options[:options] ? ", #{options[:options]}" : "")
 
       # We set `before` to true to make sure the line sits right above the block's `end`.
       new_lines = Scaffolding::BlockManipulator.insert(
-        "#{block_indentation}resources :#{resource}" + (options[:options] ? ", #{options[:options]}" : ""),
+        line_to_add,
         within: namespace_within || options[:within],
         insertion_point: insertion_point,
         before: true,
@@ -351,6 +352,12 @@ class Scaffolding::RoutesFileManipulator
       line = "scope module: '#{parent_resource}' do"
       # TODO you haven't tested this yet.
       unless (scope_within = Scaffolding::FileManipulator.find(lines, /#{line}/, parent_within))
+        # Create the new scope block
+        # @lines = Scaffolding::BlockManipulator.insert("  #{line}", lines: @lines, insertion_point: parent_within, after: true)
+        # @lines = Scaffolding::BlockManipulator.insert("end", lines: @lines, insertion_point: parent_within + 1, after: true)
+        # Scaffolding::FileManipulator.write(@filename, @lines)
+        # new_scope_line = @lines.select{|new_line| new_line.match?(line)}.first
+        # scope_within = @lines.index(new_scope_line)
         scope_within = insert([line, "end"], parent_within)
       end
 

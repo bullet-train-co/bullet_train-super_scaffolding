@@ -72,12 +72,6 @@ module Scaffolding::BlockManipulator
     index = start_line
     match = false
 
-    # If the new line we want to add is being added directly
-    # after a block, we add a new line to put space between the two.
-    if /^\s*end\s*$/.match?(lines[insertion_point - 1])
-      content = "\n#{content}"
-    end
-
     if insertion_point.present?
       lines = insert_line(content, insertion_point - (before ? 1 : 0), lines)
       return lines
@@ -109,9 +103,22 @@ module Scaffolding::BlockManipulator
     final = []
     lines.each_with_index do |line, index|
       indent = line.match(/^\s*/).to_s
+
+      # If the line we're about to add the new line under is
+      # the start of a block, we need to add the proper indentation.nt
+      indent += "\s" * 2 if line.match?(/do$/)
+
       final << line
       if index == insert_at_index
-        final << indent + content
+        content = indent + content
+
+        # If the new line we want to add is being added directly
+        # after a block, we add a new line to put space between the two.
+        if /^\s*end\s*$/.match?(lines[insert_at_index])
+          content = "\n#{content}"
+        end
+
+        final << content
       end
     end
     final
