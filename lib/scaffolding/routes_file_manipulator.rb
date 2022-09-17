@@ -127,7 +127,17 @@ class Scaffolding::RoutesFileManipulator
         if created_namespaces.any?
           insert_in_namespace(created_namespaces, lines_to_add, within)
         else
-          insert(lines_to_add, within)
+          block_start, block_end = lines_to_add
+
+          # TODO: We should be using BlockManipulator.insert_block,
+          # but it currently only supports adding blocks directly after other blocks with `after_block:`.
+          insertion_point = Scaffolding::BlockManipulator.find_block_end(starting_from: within, lines: @lines)
+          @lines = Scaffolding::BlockManipulator.insert(block_start, lines: @lines, within: within, insertion_point: insertion_point, before: true)
+          insertion_point_line = @lines.select {|line| line.match?(block_start) }.pop
+          insertion_point = @lines.index(insertion_point_line) + 1
+          @lines = Scaffolding::BlockManipulator.insert(block_end, lines: @lines, within: within, insertion_point: insertion_point, before: true)
+
+          Scaffolding::FileManipulator.write(@filename, @lines)
         end
       end
       created_namespaces << current_namespace
@@ -354,6 +364,8 @@ class Scaffolding::RoutesFileManipulator
       # TODO you haven't tested this yet.
       unless (scope_within = Scaffolding::FileManipulator.find(lines, /#{line}/, parent_within))
         # Create the new scope block
+        # TODO: We should be using BlockManipulator.insert_block,
+        # but it currently only supports adding blocks directly after other blocks with `after_block:`.
         @lines = Scaffolding::BlockManipulator.insert(line, lines: @lines, insertion_point: parent_within, after: true)
         @lines = Scaffolding::BlockManipulator.insert("end", lines: @lines, insertion_point: parent_within + 1, after: true)
         Scaffolding::FileManipulator.write(@filename, @lines)
