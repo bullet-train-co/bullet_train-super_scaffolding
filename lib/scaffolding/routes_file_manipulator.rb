@@ -354,12 +354,12 @@ class Scaffolding::RoutesFileManipulator
       # TODO you haven't tested this yet.
       unless (scope_within = Scaffolding::FileManipulator.find(lines, /#{line}/, parent_within))
         # Create the new scope block
-        # @lines = Scaffolding::BlockManipulator.insert("  #{line}", lines: @lines, insertion_point: parent_within, after: true)
-        # @lines = Scaffolding::BlockManipulator.insert("end", lines: @lines, insertion_point: parent_within + 1, after: true)
-        # Scaffolding::FileManipulator.write(@filename, @lines)
-        # new_scope_line = @lines.select{|new_line| new_line.match?(line)}.first
-        # scope_within = @lines.index(new_scope_line)
-        scope_within = insert([line, "end"], parent_within)
+        @lines = Scaffolding::BlockManipulator.insert(line, lines: @lines, insertion_point: parent_within, after: true)
+        @lines = Scaffolding::BlockManipulator.insert("end", lines: @lines, insertion_point: parent_within + 1, after: true)
+        Scaffolding::FileManipulator.write(@filename, @lines)
+
+        new_scope_line = @lines.select{|new_line| new_line.match?(line)}.first
+        scope_within = @lines.index(new_scope_line)
       end
 
       find_or_create_resource([child_resource], options: "only: collection_actions", within: scope_within)

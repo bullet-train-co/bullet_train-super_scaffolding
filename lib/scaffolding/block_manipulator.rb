@@ -104,9 +104,10 @@ module Scaffolding::BlockManipulator
     lines.each_with_index do |line, index|
       indent = line.match(/^\s*/).to_s
 
-      # If the line we're about to add the new line under is
-      # the start of a block, we need to add the proper indentation.
-      indent += "\s" * 2 if line.match?(/do$/)
+      # If `line` is the the start of a block, then `content`
+      # (what we want to add) should be indented.
+      # We DON'T indent `content` though if we're ending the block.
+      indent += "\s" * 2 if line.match?(/do$/) && !content.match(/end\n$/)
 
       final << line
       if index == insert_at_index
