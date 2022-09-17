@@ -328,21 +328,6 @@ class Scaffolding::RoutesFileManipulator
     within
   end
 
-  # TODO: Remove this and use the BlockManipulator
-  def insert(lines_to_add, within)
-    insertion_line = Scaffolding::BlockManipulator.find_block_end(starting_from: within, lines: lines)
-    result_line = insertion_line
-    unless insertion_line == within + 1
-      # only put the extra space if we're adding this line after a block
-      if /^\s*end\s*$/.match?(lines[insertion_line - 1])
-        lines_to_add.unshift("")
-        result_line += 1
-      end
-    end
-    insert_before(lines_to_add, insertion_line, indent: true)
-    result_line
-  end
-
   def apply(base_namespaces)
     child_namespaces, child_resource, parent_namespaces, parent_resource = divergent_parts
 
