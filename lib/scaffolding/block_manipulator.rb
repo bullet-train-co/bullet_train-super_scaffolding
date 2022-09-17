@@ -114,8 +114,8 @@ module Scaffolding::BlockManipulator
 
         # If the new line we want to add is being added directly
         # after a block, we add a new line to put space between the two.
-        if /^\s*end\s*$/.match?(lines[insert_at_index])
-          content = "\n#{content}"
+        if /^\s*end\n$/.match?(lines[insert_at_index])
+          final << "\n"
         end
 
         final << content

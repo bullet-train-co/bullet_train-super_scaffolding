@@ -216,15 +216,17 @@ class Scaffolding::RoutesFileManipulator
     options[:ignore] = top_level_namespace_block_lines(options[:within]) || []
 
     unless (result = find_resource([resource], options))
+      within = namespace_within || options[:within]
+
       # We want to place this at the end of the block.
-      insertion_point = Scaffolding::BlockManipulator.find_block_end(starting_from: options[:within], lines: lines)
+      insertion_point = Scaffolding::BlockManipulator.find_block_end(starting_from: within, lines: lines)
       block_indentation = Scaffolding::BlockManipulator.indentation_of(insertion_point, lines)
       line_to_add = "resources :#{resource}" + (options[:options] ? ", #{options[:options]}" : "")
 
       # We set `before` to true to make sure the line sits right above the block's `end`.
       new_lines = Scaffolding::BlockManipulator.insert(
         line_to_add,
-        within: namespace_within || options[:within],
+        within: within,
         insertion_point: insertion_point,
         before: true,
         lines: @lines,
@@ -234,8 +236,7 @@ class Scaffolding::RoutesFileManipulator
       @lines = new_lines
       Scaffolding::FileManipulator.write(@filename, new_lines)
 
-      # TODO: I think this should be an int instead of the line itself
-      result = lines[insertion_point]
+      result = insertion_point
     end
     result
   end
