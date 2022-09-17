@@ -81,7 +81,7 @@ module Scaffolding::BlockManipulator
         if after.nil? || line.match?(after)
           unless append
             match = true
-            # We adjust the injection point if we really wanted to insert before.
+            # We adjust the insertion point if we really wanted to insert before.
             lines = insert_line(content, index - (before ? 1 : 0), lines)
           end
         end
@@ -105,7 +105,7 @@ module Scaffolding::BlockManipulator
       indent = line.match(/^\s*/).to_s
 
       # If the line we're about to add the new line under is
-      # the start of a block, we need to add the proper indentation.nt
+      # the start of a block, we need to add the proper indentation.
       indent += "\s" * 2 if line.match?(/do$/)
 
       final << line
