@@ -1,6 +1,10 @@
 class Account::Scaffolding::AbsolutelyAbstract::CreativeConcepts::CollaboratorsController < Account::ApplicationController
   account_load_and_authorize_resource :collaborator, through: :creative_concept, through_association: :collaborators
 
+  # TODO: Account::ApplicationController extends this module so we shouldn't have to call this,
+  # but `assign_checkboxes` below is raising an undefined method error.
+  include Fields::ControllerSupport
+
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:creative_concept_id/collaborators
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:creative_concept_id/collaborators.json
   def index

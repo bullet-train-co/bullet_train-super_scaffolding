@@ -1,5 +1,11 @@
 class Account::Scaffolding::CompletelyConcrete::TangibleThingsController < Account::ApplicationController
+  extend ActiveSupport::Concern
+
   account_load_and_authorize_resource :tangible_thing, through: :absolutely_abstract_creative_concept, through_association: :completely_concrete_tangible_things
+
+  included do
+    private :strong_parameters_from_api
+  end
 
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things
   # GET /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things.json
@@ -24,6 +30,9 @@ class Account::Scaffolding::CompletelyConcrete::TangibleThingsController < Accou
   # POST /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things
   # POST /account/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things.json
   def create
+    @absolutely_abstract_creative_concept = Scaffolding::AbsolutelyAbstract::CreativeConcept.find(params["absolutely_abstract_creative_concept_id"])
+    @tangible_thing = @absolutely_abstract_creative_concept.completely_concrete_tangible_things.build(strong_parameters_from_api)
+
     respond_to do |format|
       if @tangible_thing.save
         format.html { redirect_to [:account, @absolutely_abstract_creative_concept, :completely_concrete_tangible_things], notice: I18n.t("scaffolding/completely_concrete/tangible_things.notifications.created") }
@@ -39,7 +48,7 @@ class Account::Scaffolding::CompletelyConcrete::TangibleThingsController < Accou
   # PATCH/PUT /account/scaffolding/completely_concrete/tangible_things/:id.json
   def update
     respond_to do |format|
-      if @tangible_thing.update(tangible_thing_params)
+      if @tangible_thing.update(strong_parameters_from_api)
         format.html { redirect_to [:account, @tangible_thing], notice: I18n.t("scaffolding/completely_concrete/tangible_things.notifications.updated") }
         format.json { render :show, status: :ok, location: [:account, @tangible_thing] }
       else
@@ -61,9 +70,13 @@ class Account::Scaffolding::CompletelyConcrete::TangibleThingsController < Accou
 
   private
 
-  include strong_parameters_from_api
+  # Although our strong params are being filtered via strong_parameters_from_api,
+  # Rails still requires us to invoke this method in the controller.
+  # Otherwise we will get an ActiveModel::ForbiddenAttributes error.
+  def tangible_thing_params
+  end
 
-  def process_params(strong_params)
+  def self.process_params(strong_params)
     # 🚅 skip this section when scaffolding.
     assign_boolean(strong_params, :boolean_button_value)
     assign_date_and_time(strong_params, :date_and_time_field_value)
