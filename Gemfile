@@ -8,7 +8,7 @@ gem "sqlite3"
 
 gem "sprockets-rails"
 
-gem "bullet_train"
+gem "bullet_train", git: "git@github.com:bullet-train-co/bullet_train-base.git", branch: "ci-strong-params"
 gem "bullet_train-api"
 
 # Start debugger with binding.b [https://github.com/ruby/debug]
