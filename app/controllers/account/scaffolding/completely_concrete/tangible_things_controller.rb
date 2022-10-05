@@ -61,7 +61,7 @@ class Account::Scaffolding::CompletelyConcrete::TangibleThingsController < Accou
 
   private
 
-  if defined?(Api::V1::Application)
+  if defined?(Api::V1::ApplicationController)
     include strong_parameters_from_api
   end
 
