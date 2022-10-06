@@ -1453,7 +1453,7 @@ class Scaffolding::Transformer
         raise e
       end
 
-      Scaffolding::FileManipulator.write("config/routes.rb", routes_manipulator.lines)
+      Scaffolding::FileManipulator.write(routes_path, routes_manipulator.lines)
 
       unless cli_options["skip-api"]
         begin
