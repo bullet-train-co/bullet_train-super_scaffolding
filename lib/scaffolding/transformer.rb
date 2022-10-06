@@ -1267,7 +1267,6 @@ class Scaffolding::Transformer
     end
 
     if cli_options["namespace"]
-      cli_options["skip-api"] = true
       cli_options["skip-model"] = true
       cli_options["skip-locales"] = true
     end
