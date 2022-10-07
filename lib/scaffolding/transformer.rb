@@ -1444,7 +1444,7 @@ class Scaffolding::Transformer
 
         # Add the namespaced route under the last standard `draw` invocation.
         before = "  draw \"sidekiq\""
-        after =  "#{before}\n  draw \"#{routes_namespace}\""
+        after = "#{before}\n  draw \"#{routes_namespace}\""
         # TODO: If we're doing to do this with the API as well, we'll need to make the file path dynamic.
         replace_in_file("config/routes.rb", before, after)
 
