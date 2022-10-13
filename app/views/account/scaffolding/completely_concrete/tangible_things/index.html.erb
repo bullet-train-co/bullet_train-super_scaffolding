@@ -1,6 +1,8 @@
 <%= render 'account/shared/page' do |p| %>
   <% p.content_for :title, t('.section') %>
   <% p.content_for :body do %>
-    <%= render 'index', tangible_things: @tangible_things %>
+    <%= render 'index', tangible_things: @tangible_things do %>
+      <%= render @tangible_things %>
+    <% end %>
   <% end %>
 <% end %>
