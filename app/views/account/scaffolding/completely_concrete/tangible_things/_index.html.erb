@@ -4,8 +4,9 @@
 <% hide_actions ||= false %>
 <% hide_back ||= false %>
 
-<% tangible_things = tangible_things.order(:id) unless has_order?(tangible_things) %>
-<% pagy, tangible_things = pagy(tangible_things, page_param: :tangible_things_page) %>
+<% unless defined?(pagy) %>
+  <% pagy, tangible_things = pagy(tangible_things, page_param: :tangible_things_page) %>
+<% end %>
 
 <%= action_model_select_controller do %>
   <%= updates_for context, collection do %>
