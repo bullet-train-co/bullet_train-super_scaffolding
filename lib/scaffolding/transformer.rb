@@ -1276,7 +1276,8 @@ class Scaffolding::Transformer
     files = if cli_options["only-index"]
       [
         "./app/views/account/scaffolding/completely_concrete/tangible_things/_index.html.erb",
-        "./app/views/account/scaffolding/completely_concrete/tangible_things/index.html.erb"
+        "./app/views/account/scaffolding/completely_concrete/tangible_things/index.html.erb",
+        "./app/views/account/scaffolding/completely_concrete/tangible_things/_tangible_thing.html.erb"
       ]
     else
       # copy a ton of files over and do the appropriate string replace.
