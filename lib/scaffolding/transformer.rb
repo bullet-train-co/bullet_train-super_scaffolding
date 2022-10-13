@@ -930,7 +930,7 @@ class Scaffolding::Transformer
         ERB
 
         unless ["Team", "User"].include?(child)
-          scaffold_add_line_to_file("./app/views/account/scaffolding/completely_concrete/tangible_things/_index.html.erb", field_content.strip, ERB_NEW_FIELDS_HOOK, prepend: true)
+          scaffold_add_line_to_file("./app/views/account/scaffolding/completely_concrete/tangible_things/_tangible_thing.html.erb", field_content.strip, ERB_NEW_FIELDS_HOOK, prepend: true)
         end
 
       end
