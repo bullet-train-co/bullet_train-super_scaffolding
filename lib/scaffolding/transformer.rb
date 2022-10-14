@@ -7,6 +7,12 @@ class Scaffolding::Transformer
   attr_accessor :child, :parent, :parents, :class_names_transformer, :cli_options, :additional_steps, :namespace, :suppress_could_not_find
 
   def code_for_child_on_parent_show_page
+    <<~ERB
+      <% pagy, tangible_things = pagy(@team.tangible_things, page_param: :tangible_things_page) %>
+      <%= render 'account/tangible_things/index', tangible_things: tangible_things, hide_back: true, pagy: pagy do %>
+        <%= render tangible_things %>
+      <% end %>
+    ERB
   end
 
   def update_models_abstract_class
@@ -101,6 +107,7 @@ class Scaffolding::Transformer
       "scaffolding_completely_concrete_tangible_thing",
       "scaffolding-absolutely-abstract-creative-concept",
       "scaffolding-completely-concrete-tangible-thing",
+      "scaffolding.completely_concrete.tangible_things",
 
       # class name in context plural.
       "absolutely_abstract_creative_concepts",
