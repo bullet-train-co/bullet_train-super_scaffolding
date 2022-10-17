@@ -1058,7 +1058,7 @@ class Scaffolding::Transformer
           when "date_and_time_field"
             "assert_equal_or_nil DateTime.parse(tangible_thing_data['#{name}']), tangible_thing.#{name}"
           when "file_field"
-            "assert_equal tangible_thing_data['#{name}'], rails_blob_path(@tangible_thing.#{name})"
+            "assert_equal tangible_thing_data['#{name}'], rails_blob_path(@tangible_thing.#{name}) unless controller.action_name == 'create'"
           else
             "assert_equal_or_nil tangible_thing_data['#{name}'], tangible_thing.#{name}"
           end
