@@ -28,6 +28,7 @@ module BulletTrain
             puts "Give it a shot! Let us know if you have any trouble with it! ✌️"
             puts ""
             puts "Bhumi is testing the Bullet Train contribution process."
+            puts ""
             exit
           end
 
