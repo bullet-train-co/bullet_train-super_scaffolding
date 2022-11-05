@@ -99,10 +99,6 @@ def show_usage
   puts ""
 end
 
-# Added temporarily for testing
-puts ""
-puts "Testing the Bullet Train contribution process."
-
 # grab the _type_ of scaffold we're doing.
 scaffolding_type = argv.shift
 
