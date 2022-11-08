@@ -1,5 +1,5 @@
 class Api::V1::Scaffolding::AbsolutelyAbstract::CreativeConceptsController < Api::V1::ApplicationController
-  account_load_and_authorize_resource :creative_concept, through: :team
+  account_load_and_authorize_resource :creative_concept, through: :team, through_association: :scaffolding_absolutely_abstract_creative_concepts
 
   # GET /api/v1/teams/:team_id/absolutely_abstract/creative_concepts
   def index
