@@ -41,7 +41,7 @@ class Api::V1::Scaffolding::AbsolutelyAbstract::CreativeConceptsController < Api
         *permitted_fields,
         :name,
         :description,
-        *permitted_arrays,
+        *permitted_arrays
       )
 
       process_params(strong_params)
