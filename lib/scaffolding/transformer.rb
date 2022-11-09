@@ -154,7 +154,7 @@ class Scaffolding::Transformer
       "/v1/" => "/#{BulletTrain::Api.current_version}/",
       "::V1::" => "::#{BulletTrain::Api.current_version}::",
       "_v1_" => "_#{BulletTrain::Api.current_version}_",
-      ":v1," => ":#{BulletTrain::Api.current_version},",
+      ":v1," => ":#{BulletTrain::Api.current_version},"
     }.each do |from, to|
       string = string.gsub(from.upcase, encode_double_replacement_fix(to.upcase))
       string = string.gsub(from.downcase, encode_double_replacement_fix(to.downcase))
