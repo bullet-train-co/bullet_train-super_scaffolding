@@ -4,6 +4,7 @@ module BulletTrain
       class CrudScaffolder < Scaffolder
         def run
           unless argv.count >= 3
+            puts "Testing the Bullet Train contribution process."
             puts ""
             puts "🚅  usage: bin/super-scaffold crud <Model> <ParentModel[s]> <attribute:type> <attribute:type> ..."
             puts ""
