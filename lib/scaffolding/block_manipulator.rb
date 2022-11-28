@@ -133,7 +133,7 @@ module Scaffolding::BlockManipulator
     # This loop was previously in the RoutesFileManipulator.
     lines.each_with_index do |line, line_number|
       next unless line_number > starting_from
-      if /^#{indentation_of(starting_from, lines)}end\s+/.match?(line)
+      if /^#{indentation_of(starting_from, lines)}end\s*/.match?(line)
         return line_number
       end
     end
