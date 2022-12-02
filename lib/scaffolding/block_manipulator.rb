@@ -60,7 +60,6 @@ module Scaffolding::BlockManipulator
     # Find the proper indices for both child and parent blocks.
     block_parent_start = find_block_parent(block_start, lines)
     block_parent_end = find_block_end(starting_from: block_parent_start, lines: lines)
-    block_end = find_block_end(starting_from: block_start, lines: lines)
 
     new_lines = shift_block(lines: lines, block_start: block_start)
     new_lines.reject.with_index { |lines, idx| idx == block_parent_start || idx == block_parent_end }

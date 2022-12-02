@@ -286,11 +286,11 @@ describe Scaffolding::BlockManipulator do
   # Using an Array instead of a Heredoc to get the test the proper spacing.
   it "shifts a block's contents to the left" do
     initial_data =
-    [
-      "block_with_contents do\n",
-      "    puts 'contents'\n",
-      "end\n"
-    ]
+      [
+        "block_with_contents do\n",
+        "    puts 'contents'\n",
+        "end\n"
+      ]
 
     initialize_demo_file(file_path, initial_data.join)
     initial_lines = File.readlines(file_path)
@@ -303,11 +303,11 @@ describe Scaffolding::BlockManipulator do
     Scaffolding::FileManipulator.write(file_path, new_lines, strip: false)
 
     expected_result =
-    [
-      "block_with_contents do\n",
-      "  puts 'contents'\n",
-      "end\n"
-    ]
+      [
+        "block_with_contents do\n",
+        "  puts 'contents'\n",
+        "end\n"
+      ]
 
     assert_equal(File.readlines(file_path), new_lines)
     assert_equal(File.read(file_path), expected_result.join)
@@ -316,11 +316,11 @@ describe Scaffolding::BlockManipulator do
   # Using an Array instead of a Heredoc to get the test the proper spacing.
   it "shifts a block's contents to the right" do
     initial_data =
-    [
-      "block_with_contents do\n",
-      "puts 'contents'\n",
-      "end\n"
-    ]
+      [
+        "block_with_contents do\n",
+        "puts 'contents'\n",
+        "end\n"
+      ]
 
     initialize_demo_file(file_path, initial_data.join)
     initial_lines = File.readlines(file_path)
@@ -334,11 +334,11 @@ describe Scaffolding::BlockManipulator do
     Scaffolding::FileManipulator.write(file_path, new_lines, strip: false)
 
     expected_result =
-    [
-      "block_with_contents do\n",
-      "  puts 'contents'\n",
-      "end\n"
-    ]
+      [
+        "block_with_contents do\n",
+        "  puts 'contents'\n",
+        "end\n"
+      ]
 
     assert_equal(File.readlines(file_path), new_lines)
     assert_equal(File.read(file_path), expected_result.join)
