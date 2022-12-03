@@ -702,6 +702,8 @@ class Scaffolding::Transformer
         "text"
       when "file_field"
         "file"
+      when "files_field"
+        "files"
       when "password_field"
         "string"
       else
@@ -1228,7 +1230,18 @@ class Scaffolding::Transformer
 
         case type
         when "file_field"
-          remove_file_methods =
+        when "files_field"
+          attachments_removal_methods = if is_multiple 
+            <<~RUBY
+              def #{name}_removal?
+                #{name}_removal&.any?
+              end
+
+              def remove_#{name}
+                #{name}.find_by_id(#{name}_removal).map(&:purge)
+              end
+            RUBY
+          else
             <<~RUBY
               def #{name}_removal?
                 #{name}_removal.present?
@@ -1238,21 +1251,23 @@ class Scaffolding::Transformer
                 #{name}.purge
               end
             RUBY
+          end
 
           # Generating a model with an `attachment` data type (i.e. - `rails g ModelName file:attachment`)
-          # adds `has_one_attached` to our model, just not directly above the HAS_ONE_HOOK.
-          # We move the string here so it's right above the HAS_ONE_HOOK.
+          # adds `has_one_attached` or `has_many_attached` to our model, just not directly above the respective HAS_ONE_HOOK or HAS_MANY_HOOK.
+          # We move the string here so it's right above the respective hook.
           model_file_path = transform_string("./app/models/scaffolding/completely_concrete/tangible_thing.rb")
           model_contents = File.readlines(model_file_path)
-          model_without_attached_hook = model_contents.reject.each { |line| line.include?("has_one_attached :#{name}") }
+          hook_type = is_multiple ? HAS_MANY_HOOK : HAS_ONE_HOOK
+          attachments_definition = is_multiple ? "has_many_attached :#{name}" : "has_one_attached :#{name}"
+          model_without_attached_hook = model_contents.reject.each { |line| line.include?(attachments_definition) }
           File.open(model_file_path, "w") do |f|
             model_without_attached_hook.each { |line| f.write(line) }
           end
 
-          scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "has_one_attached :#{name}", HAS_ONE_HOOK, prepend: true)
-
+          scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", attachments_definition, hook_type, prepend: true)
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "attr_accessor :#{name}_removal", ATTR_ACCESSORS_HOOK, prepend: true)
-          scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", remove_file_methods, METHODS_HOOK, prepend: true)
+          scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", attachments_removal_methods, METHODS_HOOK, prepend: true)
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "after_validation :remove_#{name}, if: :#{name}_removal?", CALLBACKS_HOOK, prepend: true)
         when "trix_editor"
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "has_rich_text :#{name}", HAS_ONE_HOOK, prepend: true)
