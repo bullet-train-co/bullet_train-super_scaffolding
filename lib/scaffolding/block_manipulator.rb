@@ -41,9 +41,17 @@ module Scaffolding::BlockManipulator
     lines
   end
 
-  def self.insert(content, lines:, within: nil, after: nil, before: nil, after_block: nil, append: false)
+  def self.insert(content, lines:, within: nil, insertion_point: nil, after: nil, before: nil, after_block: nil, append: false)
     # Search for before like we do after, we'll just inject before it.
     after ||= before
+
+    # TODO: For compatibility with the RoutesFileManipulator, since
+    # `within` over there is always an integer.
+    unless within.nil?
+      if within.is_a?(Integer)
+        within = lines[within]
+      end
+    end
 
     # If within is given, find the start and end lines of the block
     content += "\n" unless content.match?(/\n$/)
@@ -63,16 +71,22 @@ module Scaffolding::BlockManipulator
     end
     index = start_line
     match = false
-    while index < end_line && !match
-      line = lines[index]
-      if after.nil? || line.match?(after)
-        unless append
-          match = true
-          # We adjust the injection point if we really wanted to insert before.
-          lines = insert_line(content, index - (before ? 1 : 0), lines)
+
+    if insertion_point.present?
+      lines = insert_line(content, insertion_point - (before ? 1 : 0), lines)
+      return lines
+    else
+      while index < end_line && !match
+        line = lines[index]
+        if after.nil? || line.match?(after)
+          unless append
+            match = true
+            # We adjust the insertion point if we really wanted to insert before.
+            lines = insert_line(content, index - (before ? 1 : 0), lines)
+          end
         end
+        index += 1
       end
-      index += 1
     end
 
     return lines if match
@@ -89,9 +103,23 @@ module Scaffolding::BlockManipulator
     final = []
     lines.each_with_index do |line, index|
       indent = line.match(/^\s*/).to_s
+
+      # If `line` is the the start of a block, then `content`
+      # (what we want to add) should be indented.
+      # We DON'T indent `content` though if we're ending the block.
+      indent += "\s" * 2 if line.match?(/do$/) && !content.match(/end\n$/)
+
       final << line
       if index == insert_at_index
-        final << indent + content
+        content = indent + content
+
+        # If the new line we want to add is being added directly
+        # after a block, we add a new line to put space between the two.
+        if /^\s*end\n$/.match?(lines[insert_at_index])
+          final << "\n"
+        end
+
+        final << content
       end
     end
     final

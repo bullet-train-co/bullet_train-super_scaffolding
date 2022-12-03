@@ -127,7 +127,17 @@ class Scaffolding::RoutesFileManipulator
         if created_namespaces.any?
           insert_in_namespace(created_namespaces, lines_to_add, within)
         else
-          insert(lines_to_add, within)
+          block_start, block_end = lines_to_add
+
+          # TODO: We should be using BlockManipulator.insert_block,
+          # but it currently only supports adding blocks directly after other blocks with `after_block:`.
+          insertion_point = Scaffolding::BlockManipulator.find_block_end(starting_from: within, lines: @lines)
+          @lines = Scaffolding::BlockManipulator.insert(block_start, lines: @lines, within: within, insertion_point: insertion_point, before: true)
+          insertion_point_line = @lines.select {|line| line.match?(block_start) }.pop
+          insertion_point = @lines.index(insertion_point_line) + 1
+          @lines = Scaffolding::BlockManipulator.insert(block_end, lines: @lines, within: within, insertion_point: insertion_point, before: true)
+
+          Scaffolding::FileManipulator.write(@filename, @lines)
         end
       end
       created_namespaces << current_namespace
@@ -216,7 +226,27 @@ class Scaffolding::RoutesFileManipulator
     options[:ignore] = top_level_namespace_block_lines(options[:within]) || []
 
     unless (result = find_resource([resource], options))
-      result = insert(["resources :#{resource}" + (options[:options] ? ", #{options[:options]}" : "")], namespace_within || options[:within])
+      within = namespace_within || options[:within]
+
+      # We want to place this at the end of the block.
+      insertion_point = Scaffolding::BlockManipulator.find_block_end(starting_from: within, lines: lines)
+      block_indentation = Scaffolding::BlockManipulator.indentation_of(insertion_point, lines)
+      line_to_add = "resources :#{resource}" + (options[:options] ? ", #{options[:options]}" : "")
+
+      # We set `before` to true to make sure the line sits right above the block's `end`.
+      new_lines = Scaffolding::BlockManipulator.insert(
+        line_to_add,
+        within: within,
+        insertion_point: insertion_point,
+        before: true,
+        lines: @lines,
+      )
+
+      # TODO: We still have to update the lines for now, but we should do away with @lines eventually.
+      @lines = new_lines
+      Scaffolding::FileManipulator.write(@filename, new_lines)
+
+      result = insertion_point
     end
     result
   end
@@ -298,21 +328,6 @@ class Scaffolding::RoutesFileManipulator
     within
   end
 
-  # TODO: Remove this and use the BlockManipulator
-  def insert(lines_to_add, within)
-    insertion_line = Scaffolding::BlockManipulator.find_block_end(starting_from: within, lines: lines)
-    result_line = insertion_line
-    unless insertion_line == within + 1
-      # only put the extra space if we're adding this line after a block
-      if /^\s*end\s*$/.match?(lines[insertion_line - 1])
-        lines_to_add.unshift("")
-        result_line += 1
-      end
-    end
-    insert_before(lines_to_add, insertion_line, indent: true)
-    result_line
-  end
-
   def apply(base_namespaces)
     child_namespaces, child_resource, parent_namespaces, parent_resource = divergent_parts
 
@@ -333,7 +348,15 @@ class Scaffolding::RoutesFileManipulator
       line = "scope module: '#{parent_resource}' do"
       # TODO you haven't tested this yet.
       unless (scope_within = Scaffolding::FileManipulator.find(lines, /#{line}/, parent_within))
-        scope_within = insert([line, "end"], parent_within)
+        # Create the new scope block
+        # TODO: We should be using BlockManipulator.insert_block,
+        # but it currently only supports adding blocks directly after other blocks with `after_block:`.
+        @lines = Scaffolding::BlockManipulator.insert(line, lines: @lines, insertion_point: parent_within, after: true)
+        @lines = Scaffolding::BlockManipulator.insert("end", lines: @lines, insertion_point: parent_within + 1, after: true)
+        Scaffolding::FileManipulator.write(@filename, @lines)
+
+        new_scope_line = @lines.select{|new_line| new_line.match?(line)}.first
+        scope_within = @lines.index(new_scope_line)
       end
 
       find_or_create_resource([child_resource], options: "only: collection_actions", within: scope_within)
