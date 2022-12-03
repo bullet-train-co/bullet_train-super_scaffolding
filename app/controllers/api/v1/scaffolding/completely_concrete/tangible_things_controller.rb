@@ -11,6 +11,11 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingsController < Api::
 
   # POST /api/v1/scaffolding/absolutely_abstract/creative_concepts/:absolutely_abstract_creative_concept_id/completely_concrete/tangible_things
   def create
+    @absolutely_abstract_creative_concept = Scaffolding::AbsolutelyAbstract::CreativeConcept.find(params["absolutely_abstract_creative_concept_id"])
+    @tangible_thing = @absolutely_abstract_creative_concept.completely_concrete_tangible_things.build(strong_parameters_from_api)
+
+    @tangible_thing = Scaffolding::CompletelyConcrete::TangibleThing.new(strong_parameters_from_api)
+
     if @tangible_thing.save
       render :show, status: :created, location: [:api, :v1, @tangible_thing]
     else
@@ -20,7 +25,7 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingsController < Api::
 
   # PATCH/PUT /api/v1/scaffolding/completely_concrete/tangible_things/:id
   def update
-    if @tangible_thing.update(tangible_thing_params)
+    if @tangible_thing.update(strong_parameters_from_api)
       render :show
     else
       render json: @tangible_thing.errors, status: :unprocessable_entity
@@ -36,7 +41,7 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingsController < Api::
 
   module StrongParameters
     # Only allow a list of trusted parameters through.
-    def tangible_thing_params
+    def self.tangible_thing_params(params, permitted_fields, permitted_arrays)
       strong_params = params.require(:scaffolding_completely_concrete_tangible_thing).permit(
         *permitted_fields,
         # 🚅 skip this section when scaffolding.
@@ -57,6 +62,7 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingsController < Api::
         :phone_field_value,
         :super_select_value,
         :text_area_value,
+        :absolutely_abstract_creative_concept_id,
         # 🚅 stop any skipping we're doing now.
         # 🚅 super scaffolding will insert new fields above this line.
         *permitted_arrays,
@@ -68,11 +74,17 @@ class Api::V1::Scaffolding::CompletelyConcrete::TangibleThingsController < Api::
         # 🚅 super scaffolding will insert new arrays above this line.
       )
 
-      process_params(strong_params)
+      Account::Scaffolding::CompletelyConcrete::TangibleThingsController.process_params(strong_params)
 
       strong_params
     end
   end
 
   include StrongParameters
+
+  # Although our strong params are being filtered via strong_parameters_from_api,
+  # Rails still requires us to invoke this method in the controller.
+  # Otherwise we will get an ActiveModel::ForbiddenAttributes error.
+  def tangible_thing_params
+  end
 end
