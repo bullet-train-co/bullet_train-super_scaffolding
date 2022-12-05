@@ -1238,7 +1238,7 @@ class Scaffolding::Transformer
               end
 
               def remove_#{name}
-                #{name}.find_by_id(#{name}_removal).map(&:purge)
+                #{name}.where(id: #{name}_removal).map(&:purge)
               end
             RUBY
           else
