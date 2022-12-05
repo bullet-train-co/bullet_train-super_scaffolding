@@ -1245,6 +1245,8 @@ class Scaffolding::Transformer
           model_file_path = transform_string("./app/models/scaffolding/completely_concrete/tangible_thing.rb")
           model_contents = File.readlines(model_file_path)
           reflection_declaration = is_multiple ? "has_many_attached :#{name}" : "has_one_attached :#{name}"
+
+          # Save the file without the hook so we can write it via the `scaffold_add_line_to_file` method below.
           model_without_attached_hook = model_contents.reject.each { |line| line.include?(reflection_declaration) }
           File.open(model_file_path, "w") do |f|
             model_without_attached_hook.each { |line| f.write(line) }
@@ -1253,6 +1255,7 @@ class Scaffolding::Transformer
           hook_type = is_multiple ? HAS_MANY_HOOK : HAS_ONE_HOOK
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", reflection_declaration, hook_type, prepend: true)
 
+          # TODO: We may need to edit these depending on how we save multiple files.
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "attr_accessor :#{name}_removal", ATTR_ACCESSORS_HOOK, prepend: true)
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", remove_file_methods, METHODS_HOOK, prepend: true)
           scaffold_add_line_to_file("./app/models/scaffolding/completely_concrete/tangible_thing.rb", "after_validation :remove_#{name}, if: :#{name}_removal?", CALLBACKS_HOOK, prepend: true)
