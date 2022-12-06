@@ -1232,8 +1232,7 @@ class Scaffolding::Transformer
         end
 
         case type
-        when "file_field"
-        when "files_field"
+        when "file_field", "files_field"
           attachments_removal_methods = if is_multiple 
             <<~RUBY
               def #{name}_removal?
@@ -1241,8 +1240,18 @@ class Scaffolding::Transformer
               end
 
               def remove_#{name}
-                #{name}.where(id: #{name}_removal).map(&:purge)
+                #{name}_attachments.where(id: #{name}_removal).map(&:purge)
               end
+
+              def #{name}=(attachables)
+                attachables = Array(attachables).compact_blank
+            
+                if attachables.any?
+                  attachment_changes["#{name}"] =
+                    ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, #{name}.blobs + attachables)
+                end
+              end
+
             RUBY
           else
             <<~RUBY
@@ -1253,6 +1262,7 @@ class Scaffolding::Transformer
               def remove_#{name}
                 #{name}.purge
               end
+
             RUBY
           end
 
