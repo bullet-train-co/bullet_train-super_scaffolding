@@ -701,9 +701,7 @@ class Scaffolding::Transformer
       when "text_area"
         "text"
       when "file_field"
-        "file"
-      when "files_field"
-        "files"
+        "file#{"s" if is_multiple}"
       when "password_field"
         "string"
       else
@@ -1023,7 +1021,7 @@ class Scaffolding::Transformer
         ].each do |file|
           if is_ids || is_multiple
             scaffold_add_line_to_file(file, "#{name}: [],", RUBY_NEW_ARRAYS_HOOK, prepend: true)
-            if type == "files_field"
+            if type == "file_field"
               scaffold_add_line_to_file(file, "#{name}_removal: [],", RUBY_NEW_ARRAYS_HOOK, prepend: true)
             end
           else
@@ -1232,7 +1230,7 @@ class Scaffolding::Transformer
         end
 
         case type
-        when "file_field", "files_field"
+        when "file_field"
           attachments_removal_methods = if is_multiple 
             <<~RUBY
               def #{name}_removal?
