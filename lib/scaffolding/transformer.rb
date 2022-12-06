@@ -1022,10 +1022,9 @@ class Scaffolding::Transformer
           "./app/controllers/api/v1/scaffolding/completely_concrete/tangible_things_controller.rb"
         ].each do |file|
           if is_ids || is_multiple
+            scaffold_add_line_to_file(file, "#{name}: [],", RUBY_NEW_ARRAYS_HOOK, prepend: true)
             if type == "files_field"
               scaffold_add_line_to_file(file, "#{name}_removal: [],", RUBY_NEW_ARRAYS_HOOK, prepend: true)
-            else 
-              scaffold_add_line_to_file(file, "#{name}: [],", RUBY_NEW_ARRAYS_HOOK, prepend: true)
             end
           else
             scaffold_add_line_to_file(file, ":#{name},", RUBY_NEW_FIELDS_HOOK, prepend: true)
