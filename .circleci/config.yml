@@ -103,7 +103,7 @@ jobs:
             grep -v 'gem \"bullet_train-super_scaffolding\"' tmp/starter/Gemfile > tmp/starter/Gemfile.tmp && \
             mv tmp/starter/Gemfile.tmp tmp/starter/Gemfile && \
             echo 'gem \"bullet_train-super_scaffolding\", path: \"../..\"' >> tmp/starter/Gemfile" && \
-            sed -i /gem \"bullet_train-incoming_webhooks\"/gem \"bullet_train-incoming_webhooks\", git: \"https://github.com/bullet-train-co/bullet_train-core.git\", branch: \"main\", glob: \"bullet_train-incoming_webhooks\/*.gemspec\"/g tmp/starter/Gemfile
+            sed -i /gem \"bullet_train-incoming_webhooks\"/gem \"bullet_train-incoming_webhooks\", git: \"https:\/\/github.com\/bullet-train-co\/bullet_train-core.git\", branch: \"main\", glob: \"bullet_train-incoming_webhooks\/*.gemspec\"/g tmp/starter/Gemfile
       # TODO Figure out how to make these work for `tmp/starter`
       # - restore_cache: *restore_bundler_cache
       # - restore_cache: *restore_yarn_cache
