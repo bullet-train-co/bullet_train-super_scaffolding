@@ -148,7 +148,7 @@ jobs:
     steps:
       - browser-tools/install-browser-tools
       - checkout
-      - run: "git clone https://github.com/bullet-train-co/bullet_train.git tmp/starter"
+      - run: "git clone --branch testing/incoming-webhooks https://github.com/gazayas/bullet_train.git tmp/starter"
 
       - run:
           name: Link starter repository to the Ruby gem being tested.
