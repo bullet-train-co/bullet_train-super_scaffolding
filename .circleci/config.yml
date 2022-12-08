@@ -95,15 +95,11 @@ jobs:
     steps:
       - browser-tools/install-browser-tools
       - checkout
-      - run: "git clone https://github.com/bullet-train-co/bullet_train.git tmp/starter"
+      - run: "git clone --branch testing/incoming-webhooks https://github.com/gazayas/bullet_train.git tmp/starter"
 
       - run:
           name: Link starter repository to the Ruby gem being tested.
-          command: |
-            grep -v 'gem \"bullet_train-super_scaffolding\"' tmp/starter/Gemfile > tmp/starter/Gemfile.tmp && \
-            mv tmp/starter/Gemfile.tmp tmp/starter/Gemfile && \
-            echo 'gem \"bullet_train-super_scaffolding\", path: \"../..\"' >> tmp/starter/Gemfile" && \
-            echo 'gem \"bullet_train-incoming_webhooks\", git: \"https:\/\/github.com\/bullet-train-co\/bullet_train-core.git\", branch: \"main\", glob: \"bullet_train-incoming_webhooks\/*.gemspec\"' >> tmp/starter/Gemfile
+          command: "grep -v 'gem \"bullet_train-super_scaffolding\"' tmp/starter/Gemfile > tmp/starter/Gemfile.tmp && mv tmp/starter/Gemfile.tmp tmp/starter/Gemfile && echo 'gem \"bullet_train-super_scaffolding\", path: \"../..\"' >> tmp/starter/Gemfile"
       # TODO Figure out how to make these work for `tmp/starter`
       # - restore_cache: *restore_bundler_cache
       # - restore_cache: *restore_yarn_cache
