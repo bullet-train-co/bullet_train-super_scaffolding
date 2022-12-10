@@ -1231,7 +1231,7 @@ class Scaffolding::Transformer
 
         case type
         when "file_field"
-          attachments_removal_methods = if is_multiple 
+          attachments_removal_methods = if is_multiple
             <<~RUBY
               def #{name}_removal?
                 #{name}_removal&.any?
